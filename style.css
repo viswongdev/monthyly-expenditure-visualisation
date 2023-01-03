@@ -27,6 +27,7 @@ canvas {
   justify-content: space-between;
   font-size: 3rem;
   user-select: none;
+  pointer-events: none;
 }
 
 /* #year{
@@ -37,6 +38,7 @@ canvas {
 .nav{
   margin:10px;
   cursor: pointer;
+  pointer-events: all;
 }
 
 .nav:hover {

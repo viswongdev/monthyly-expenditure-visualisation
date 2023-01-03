@@ -4,10 +4,8 @@ import * as THREE from 'three'
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js'
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
 
-import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
-
 // For OrbitControls
-// import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 
 let totalMonths, currentMonth;
 
@@ -112,6 +110,9 @@ let fetch_data = fetch('https://script.googleusercontent.com/macros/echo?user_co
     canvas: document.querySelector('#bg'),
   });
 
+  // For OrbitControls
+  const controls = new OrbitControls(camera, renderer.domElement);
+
   // const geometry = new THREE.TorusGeometry(10, 3, 16, 100);
   const material = new THREE.MeshStandardMaterial({ color: 0xFF6347 });
   // const torus = new THREE.Mesh(geometry, material);
@@ -133,9 +134,6 @@ function init(){
   const lightHelper = new THREE.PointLightHelper(pointLight);
   const gridHelper = new THREE.GridHelper(200, 50);
   scene.add(lightHelper, gridHelper);
-
-  // For OrbitControls
-  // const controls = new OrbitControls(camera, renderer.domElement);
 }
 
 function loadFont(currentMonth) {
@@ -155,11 +153,13 @@ function loadFont(currentMonth) {
         bevelSegments: 4,
       });
       textGeometry.center();
+      makeInstanced(textGeometry);
       const textMaterial = new THREE.MeshStandardMaterial({ color: 0xff6347 });
       const text = new THREE.Mesh(textGeometry, textMaterial);
+      
       // remove previous text
-      scene.remove(scene.children[scene.children.length - 1]);
-      scene.add(text);
+      // scene.remove(scene.children[scene.children.length - 1]);
+      // scene.add(text);
     }
   );
 }
@@ -185,7 +185,23 @@ function animate() {
   // torus.rotation.y += 0.005;
   // torus.rotation.z += 0.01;
 
-  // controls.update();
+  controls.update();
 
   renderer.render(scene, camera);
+}
+
+function makeInstanced(geometry) {
+  const material = new THREE.MeshStandardMaterial({ color: 0xff6347 });
+  const count = 100;
+  const dummy = new THREE.Object3D();
+  const instancedMesh = new THREE.InstancedMesh(geometry, material, count);
+  scene.add(instancedMesh);
+  for (let i = 0; i < count; i++) {
+    const angle = i / count * Math.PI * 2;
+    const radius = 5 + Math.random() * 10;
+    dummy.position.set(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
+    dummy.rotation.y = (angle + Math.PI / 2);
+    dummy.updateMatrix();
+    instancedMesh.setMatrixAt(i, dummy.matrix);
+  }
 }
