@@ -4,6 +4,8 @@ import * as THREE from 'three'
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js'
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
 
+import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
+
 // For OrbitControls
 // import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 
@@ -110,9 +112,9 @@ let fetch_data = fetch('https://script.googleusercontent.com/macros/echo?user_co
     canvas: document.querySelector('#bg'),
   });
 
-  const geometry = new THREE.TorusGeometry(10, 3, 16, 100);
+  // const geometry = new THREE.TorusGeometry(10, 3, 16, 100);
   const material = new THREE.MeshStandardMaterial({ color: 0xFF6347 });
-  const torus = new THREE.Mesh(geometry, material);
+  // const torus = new THREE.Mesh(geometry, material);
 
 function init(){
 
@@ -120,7 +122,7 @@ function init(){
   renderer.setSize(window.innerWidth, window.innerHeight);
   camera.position.setZ(30);
 
-  scene.add(torus);
+  // scene.add(torus);
 
   const pointLight = new THREE.PointLight(0xffffff);
   pointLight.position.set(20, 20, 20);
@@ -179,9 +181,9 @@ function animate() {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
 
-  torus.rotation.x += 0.01;
-  torus.rotation.y += 0.005;
-  torus.rotation.z += 0.01;
+  // torus.rotation.x += 0.01;
+  // torus.rotation.y += 0.005;
+  // torus.rotation.z += 0.01;
 
   // controls.update();
 
