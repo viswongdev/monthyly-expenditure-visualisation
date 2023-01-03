@@ -5,15 +5,6 @@ body {
   background: #000;
 }
 
-@keyframes loading {
-  0% {
-    transform: rotate(0turn);
-  }
-  100% {
-    transform: rotate(1turn);
-  }
-}
-
 canvas {
   position: fixed;
   top: 0;
@@ -38,10 +29,10 @@ canvas {
   user-select: none;
 }
 
-#year{
+/* #year{
   align-self: flex-start;
   margin:10px;
-}
+} */
 
 .nav{
   margin:10px;

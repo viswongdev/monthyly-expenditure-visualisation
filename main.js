@@ -1,9 +1,13 @@
 import './style.css'
 
 import * as THREE from 'three'
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js'
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
 
 // For OrbitControls
 // import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+
+let totalMonths, currentMonth;
 
 // For loading the data from Google Sheet
 let expenses = [];
@@ -12,8 +16,6 @@ let fetch_data = fetch('https://script.googleusercontent.com/macros/echo?user_co
 .then(data => {
   // console.log(data);
   // formatting the data
-  let totalExpenses = {};
-  totalExpenses['total'] = data.GoogleSheetData[0][2];
   data.GoogleSheetData.shift();
   let keyName = data.GoogleSheetData[0];
   data.GoogleSheetData.shift();
@@ -71,38 +73,94 @@ let fetch_data = fetch('https://script.googleusercontent.com/macros/echo?user_co
     });
     expenses.push(obj);
   });
-  expenses.push(totalExpenses);
-  // console.log(expenses);
+  totalMonths = expenses.length - 1;
+  currentMonth = totalMonths;
+  console.log(expenses);
+  init();
+  animate();
+  loadFont(currentMonth);
+
+  // create button
+  let leftArr = document.createElement('div');
+  leftArr.innerHTML = '&larr;';
+  leftArr.className = 'nav';
+  leftArr.addEventListener('click', () => {
+    if (currentMonth === 0) return;
+    console.log('left clicked');
+    currentMonth--;
+    loadFont(currentMonth);
+  });
+  document.getElementById('info').appendChild(leftArr);
+
+  let rightArr = document.createElement('div');
+  rightArr.innerHTML = '&rarr;';
+  rightArr.className = 'nav';
+  rightArr.addEventListener('click', () => {
+    if (currentMonth === totalMonths) return;
+    console.log('right clicked');
+    currentMonth++;
+    loadFont(currentMonth);
+  });
+  document.getElementById('info').appendChild(rightArr);
 });
 
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer({
-  canvas: document.querySelector('#bg'),
-});
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+  const renderer = new THREE.WebGLRenderer({
+    canvas: document.querySelector('#bg'),
+  });
 
-renderer.setPixelRatio(window.devicePixelRatio);
-renderer.setSize(window.innerWidth, window.innerHeight);
-camera.position.setZ(30);
+  const geometry = new THREE.TorusGeometry(10, 3, 16, 100);
+  const material = new THREE.MeshStandardMaterial({ color: 0xFF6347 });
+  const torus = new THREE.Mesh(geometry, material);
 
-const geometry = new THREE.TorusGeometry(10, 3, 16, 100);
-const material = new THREE.MeshStandardMaterial({ color: 0xFF6347 });
-const torus = new THREE.Mesh(geometry, material);
+function init(){
 
-scene.add(torus);
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  camera.position.setZ(30);
 
-const pointLight = new THREE.PointLight(0xffffff);
-pointLight.position.set(20, 20, 20);
+  scene.add(torus);
 
-const ambientLight = new THREE.AmbientLight(0xffffff);
-scene.add(pointLight, ambientLight);
+  const pointLight = new THREE.PointLight(0xffffff);
+  pointLight.position.set(20, 20, 20);
 
-const lightHelper = new THREE.PointLightHelper(pointLight);
-const gridHelper = new THREE.GridHelper(200, 50);
-scene.add(lightHelper, gridHelper);
+  const ambientLight = new THREE.AmbientLight(0xffffff);
+  scene.add(pointLight, ambientLight);
 
-// For OrbitControls
-// const controls = new OrbitControls(camera, renderer.domElement);
+  const lightHelper = new THREE.PointLightHelper(pointLight);
+  const gridHelper = new THREE.GridHelper(200, 50);
+  scene.add(lightHelper, gridHelper);
+
+  // For OrbitControls
+  // const controls = new OrbitControls(camera, renderer.domElement);
+}
+
+function loadFont(currentMonth) {
+  const fontLoader = new FontLoader();
+  fontLoader.load(
+    'node_modules/three/examples/fonts/helvetiker_regular.typeface.json',
+    (font) => {
+      const textGeometry = new TextGeometry(expenses[currentMonth]['Year'].toString() + ' ' + expenses[currentMonth]['Month'].toString(), {
+        font: font,
+        size: 3,
+        height: 1,
+        curveSegments: 5,
+        bevelEnabled: true,
+        bevelThickness: 0.1,
+        bevelSize: 0.1,
+        bevelOffset: 0,
+        bevelSegments: 4,
+      });
+      textGeometry.center();
+      const textMaterial = new THREE.MeshStandardMaterial({ color: 0xff6347 });
+      const text = new THREE.Mesh(textGeometry, textMaterial);
+      // remove previous text
+      scene.remove(scene.children[scene.children.length - 1]);
+      scene.add(text);
+    }
+  );
+}
 
 function moveCamera() {
   const t = document.body.getBoundingClientRect().top;
@@ -129,5 +187,3 @@ function animate() {
 
   renderer.render(scene, camera);
 }
-
-animate();
