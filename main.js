@@ -156,8 +156,8 @@ function loadFont(currentMonth) {
       });
       textGeometry.center();
       makeInstanced(textGeometry);
-      const textMaterial = new THREE.MeshStandardMaterial({ color: 0xff6347 });
-      const text = new THREE.Mesh(textGeometry, textMaterial);
+      // const textMaterial = new THREE.MeshStandardMaterial({ color: 0xff6347 });
+      // const text = new THREE.Mesh(textGeometry, textMaterial);
       
       // remove previous text
       // scene.remove(scene.children[scene.children.length - 1]);
@@ -192,20 +192,36 @@ function animate() {
   renderer.render(scene, camera);
 }
 
-function makeInstanced(geometry) {
-  const material = new THREE.MeshStandardMaterial({ color: 0xff6347 });
+// function makeInstanced(geometry) {
+//   const material = new THREE.MeshStandardMaterial({ color: 0xff6347 });
+//   const count = 100;
+//   const dummy = new THREE.Object3D();
+//   const instancedMesh = new THREE.InstancedMesh(geometry, material, count);
+//   scene.add(instancedMesh);
+//   for (let i = 0; i < count; i++) {
+//     const angle = i / count * Math.PI * 2;
+//     const radius = 5 + Math.random() * 10;
+//     dummy.position.set(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
+//     dummy.rotation.y = (angle + Math.PI / 2);
+//     dummy.updateMatrix();
+//     instancedMesh.setMatrixAt(i, dummy.matrix);
+//   }
+// }
+
+function makeInstanced( geometry ) {
   const count = 100;
-  const dummy = new THREE.Object3D();
-  const instancedMesh = new THREE.InstancedMesh(geometry, material, count);
-  scene.add(instancedMesh);
-  for (let i = 0; i < count; i++) {
-    const angle = i / count * Math.PI * 2;
-    const radius = 5 + Math.random() * 10;
-    dummy.position.set(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
-    dummy.rotation.y = (angle + Math.PI / 2);
-    dummy.updateMatrix();
-    instancedMesh.setMatrixAt(i, dummy.matrix);
+  const matrix = new THREE.Matrix4();
+  const mesh = new THREE.InstancedMesh( geometry, material, count );
+  
+  for ( let i = 0; i < count; i ++ ) {
+
+    randomizeMatrix( matrix );
+    mesh.setMatrixAt( i, matrix );
+
   }
+
+  scene.add( mesh );
+
 }
 
 function clean() {
@@ -229,3 +245,30 @@ function clean() {
   }
 
 }
+
+const randomizeMatrix = function () {
+
+  const position = new THREE.Vector3();
+  const rotation = new THREE.Euler();
+  const quaternion = new THREE.Quaternion();
+  const scale = new THREE.Vector3();
+
+  return function ( matrix ) {
+
+    position.x = Math.random() * 40 - 20;
+    position.y = Math.random() * 40 - 20;
+    position.z = Math.random() * 40 - 20;
+
+    rotation.x = Math.random() * 2 * Math.PI;
+    rotation.y = Math.random() * 2 * Math.PI;
+    rotation.z = Math.random() * 2 * Math.PI;
+
+    quaternion.setFromEuler( rotation );
+
+    scale.x = scale.y = scale.z = Math.random() * 1;
+
+    matrix.compose( position, quaternion, scale );
+
+  };
+
+}();
