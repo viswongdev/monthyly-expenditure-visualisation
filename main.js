@@ -82,22 +82,24 @@ let fetch_data = fetch('https://script.googleusercontent.com/macros/echo?user_co
 
   // create button
   let leftArr = document.createElement('div');
-  leftArr.innerHTML = '&larr;';
+  leftArr.innerHTML = '◀';
   leftArr.className = 'nav';
   leftArr.addEventListener('click', () => {
     if (currentMonth === 0) return;
     console.log('left clicked');
+    clean();
     currentMonth--;
     loadFont(currentMonth);
   });
   document.getElementById('info').appendChild(leftArr);
 
   let rightArr = document.createElement('div');
-  rightArr.innerHTML = '&rarr;';
+  rightArr.innerHTML = '►';
   rightArr.className = 'nav';
   rightArr.addEventListener('click', () => {
     if (currentMonth === totalMonths) return;
     console.log('right clicked');
+    clean();
     currentMonth++;
     loadFont(currentMonth);
   });
@@ -204,4 +206,26 @@ function makeInstanced(geometry) {
     dummy.updateMatrix();
     instancedMesh.setMatrixAt(i, dummy.matrix);
   }
+}
+
+function clean() {
+
+  const meshes = [];
+
+  scene.traverse( function ( object ) {
+
+    if ( object.isMesh ) meshes.push( object );
+
+  } );
+
+  for ( let i = 0; i < meshes.length; i ++ ) {
+
+    const mesh = meshes[ i ];
+    mesh.material.dispose();
+    mesh.geometry.dispose();
+
+    scene.remove( mesh );
+
+  }
+
 }

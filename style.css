@@ -30,15 +30,11 @@ canvas {
   pointer-events: none;
 }
 
-/* #year{
-  align-self: flex-start;
-  margin:10px;
-} */
-
 .nav{
   margin:10px;
   cursor: pointer;
   pointer-events: all;
+  opacity: 0.5;
 }
 
 .nav:hover {
