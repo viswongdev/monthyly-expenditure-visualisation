@@ -106,26 +106,23 @@ let fetch_data = fetch('https://script.googleusercontent.com/macros/echo?user_co
   document.getElementById('info').appendChild(rightArr);
 });
 
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-  const renderer = new THREE.WebGLRenderer({
-    canvas: document.querySelector('#bg'),
-  });
+const scene = new THREE.Scene();
+// const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const aspect = window.innerWidth / window.innerHeight;
+const camera = new THREE.OrthographicCamera( 50 * aspect / - 2, 50 * aspect / 2, 50 / 2, 50 / - 2, 1, 1000 );
 
-  // For OrbitControls
-  const controls = new OrbitControls(camera, renderer.domElement);
+const renderer = new THREE.WebGLRenderer({
+  canvas: document.querySelector('#bg'),
+});
 
-  // const geometry = new THREE.TorusGeometry(10, 3, 16, 100);
-  const material = new THREE.MeshStandardMaterial({ color: 0xFF6347 });
-  // const torus = new THREE.Mesh(geometry, material);
+// For OrbitControls
+const controls = new OrbitControls(camera, renderer.domElement);
 
 function init(){
 
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
   camera.position.setZ(30);
-
-  // scene.add(torus);
 
   const pointLight = new THREE.PointLight(0xffffff);
   pointLight.position.set(20, 20, 20);
@@ -136,6 +133,8 @@ function init(){
   const lightHelper = new THREE.PointLightHelper(pointLight);
   const gridHelper = new THREE.GridHelper(200, 50);
   scene.add(lightHelper, gridHelper);
+
+  window.addEventListener( 'resize', onWindowResize );
 }
 
 function loadFont(currentMonth) {
@@ -156,12 +155,6 @@ function loadFont(currentMonth) {
       });
       textGeometry.center();
       makeInstanced(textGeometry);
-      // const textMaterial = new THREE.MeshStandardMaterial({ color: 0xff6347 });
-      // const text = new THREE.Mesh(textGeometry, textMaterial);
-      
-      // remove previous text
-      // scene.remove(scene.children[scene.children.length - 1]);
-      // scene.add(text);
     }
   );
 }
@@ -178,45 +171,50 @@ document.body.onscroll = moveCamera;
 function animate() {
   requestAnimationFrame(animate);
 
-  // resize canvas that maintains the camera aspect ratio
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-
-  // torus.rotation.x += 0.01;
-  // torus.rotation.y += 0.005;
-  // torus.rotation.z += 0.01;
-
   controls.update();
 
   renderer.render(scene, camera);
 }
 
-// function makeInstanced(geometry) {
-//   const material = new THREE.MeshStandardMaterial({ color: 0xff6347 });
-//   const count = 100;
-//   const dummy = new THREE.Object3D();
-//   const instancedMesh = new THREE.InstancedMesh(geometry, material, count);
-//   scene.add(instancedMesh);
-//   for (let i = 0; i < count; i++) {
-//     const angle = i / count * Math.PI * 2;
-//     const radius = 5 + Math.random() * 10;
-//     dummy.position.set(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
-//     dummy.rotation.y = (angle + Math.PI / 2);
-//     dummy.updateMatrix();
-//     instancedMesh.setMatrixAt(i, dummy.matrix);
-//   }
-// }
+function onWindowResize() {
+
+  const aspect = window.innerWidth / window.innerHeight;
+
+  camera.left = - 50 * aspect / 2;
+  camera.right = 50 * aspect / 2;
+  camera.top = 50 / 2;
+  camera.bottom = - 50 / 2;
+
+  camera.updateProjectionMatrix();
+
+  renderer.setSize( window.innerWidth, window.innerHeight );
+
+}
 
 function makeInstanced( geometry ) {
-  const count = 100;
+  const x = 10;
+  const y = 20;
+  let count = 0;
+  const gap = 1.5;
+  const total = x*y;
   const matrix = new THREE.Matrix4();
-  const mesh = new THREE.InstancedMesh( geometry, material, count );
+  const material = new THREE.MeshStandardMaterial({ color: 0xff6347 });
+  const mesh = new THREE.InstancedMesh( geometry, material, total );
   
-  for ( let i = 0; i < count; i ++ ) {
+  // get the mesh actual dimensions
+  const box = new THREE.Box3().setFromObject( mesh );
+  const size = new THREE.Vector3();
+  box.getSize( size );
+  console.log(size.x);
+  console.log(size.y);
 
-    randomizeMatrix( matrix );
+  for ( let i = 0; i < total; i ++ ) {
+
+    matrix.makeTranslation( (-(size.x*x)-((x-1)*gap))/2 + size.x/2 + i % x * (size.x + gap), y*size.y/2 - size.y/2 + count * -size.y, 0 );
+
     mesh.setMatrixAt( i, matrix );
+
+    if (i%x === x-1) count++;
 
   }
 
@@ -245,30 +243,3 @@ function clean() {
   }
 
 }
-
-const randomizeMatrix = function () {
-
-  const position = new THREE.Vector3();
-  const rotation = new THREE.Euler();
-  const quaternion = new THREE.Quaternion();
-  const scale = new THREE.Vector3();
-
-  return function ( matrix ) {
-
-    position.x = Math.random() * 40 - 20;
-    position.y = Math.random() * 40 - 20;
-    position.z = Math.random() * 40 - 20;
-
-    rotation.x = Math.random() * 2 * Math.PI;
-    rotation.y = Math.random() * 2 * Math.PI;
-    rotation.z = Math.random() * 2 * Math.PI;
-
-    quaternion.setFromEuler( rotation );
-
-    scale.x = scale.y = scale.z = Math.random() * 1;
-
-    matrix.compose( position, quaternion, scale );
-
-  };
-
-}();
