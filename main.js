@@ -134,6 +134,8 @@ function init(){
   const gridHelper = new THREE.GridHelper(200, 50);
   scene.add(lightHelper, gridHelper);
 
+  scene.background = new THREE.Color( 0xff6347 );
+
   window.addEventListener( 'resize', onWindowResize );
 }
 
