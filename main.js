@@ -109,8 +109,9 @@ let fetch_data = fetch('https://script.googleusercontent.com/macros/echo?user_co
 const scene = new THREE.Scene();
 // const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const aspect = window.innerWidth / window.innerHeight;
-const camera = new THREE.OrthographicCamera( 50 * aspect / - 2, 50 * aspect / 2, 50 / 2, 50 / - 2, 1, 1000 );
-
+const frustumSize = 50;
+const camera = new THREE.OrthographicCamera( frustumSize * aspect / - 2, frustumSize * aspect / 2, frustumSize / 2, frustumSize / - 2, 1, 1000 );
+const pointLight = new THREE.PointLight(0xffffff);
 const renderer = new THREE.WebGLRenderer({
   canvas: document.querySelector('#bg'),
 });
@@ -124,7 +125,7 @@ function init(){
   renderer.setSize(window.innerWidth, window.innerHeight);
   camera.position.setZ(30);
 
-  const pointLight = new THREE.PointLight(0xffffff);
+  
   pointLight.position.set(20, 20, 20);
 
   const ambientLight = new THREE.AmbientLight(0xffffff);
@@ -161,19 +162,13 @@ function loadFont(currentMonth) {
   );
 }
 
-function moveCamera() {
-  const t = document.body.getBoundingClientRect().top;
-  camera.position.z = t * -0.01;
-  camera.position.x = t * -0.0002;
-  camera.position.y = t * -0.0002;
-}
-
-document.body.onscroll = moveCamera;
-
 function animate() {
   requestAnimationFrame(animate);
 
   controls.update();
+
+  pointLight.position.x = 20 * Math.sin(Date.now() / 500);
+  pointLight.position.y = 20 * Math.cos(Date.now() / 500);
 
   renderer.render(scene, camera);
 }
@@ -182,10 +177,10 @@ function onWindowResize() {
 
   const aspect = window.innerWidth / window.innerHeight;
 
-  camera.left = - 50 * aspect / 2;
-  camera.right = 50 * aspect / 2;
-  camera.top = 50 / 2;
-  camera.bottom = - 50 / 2;
+  camera.left = - frustumSize * aspect / 2;
+  camera.right = frustumSize * aspect / 2;
+  camera.top = frustumSize / 2;
+  camera.bottom = - frustumSize / 2;
 
   camera.updateProjectionMatrix();
 
