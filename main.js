@@ -3,6 +3,7 @@ import './style.css'
 import * as THREE from 'three'
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js'
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
 // For OrbitControls
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
@@ -112,6 +113,8 @@ const aspect = window.innerWidth / window.innerHeight;
 const frustumSize = 50;
 const camera = new THREE.OrthographicCamera( frustumSize * aspect / - 2, frustumSize * aspect / 2, frustumSize / 2, frustumSize / - 2, 1, 1000 );
 const pointLight = new THREE.PointLight(0xffffff);
+const keyLightForPiggy = new THREE.PointLight(0xffffff);
+const highLightForPiggy = new THREE.PointLight(0xffffff);
 const renderer = new THREE.WebGLRenderer({
   canvas: document.querySelector('#bg'),
 });
@@ -126,16 +129,77 @@ function init(){
   camera.position.setZ(30);
 
   
-  pointLight.position.set(20, 20, 20);
+  // pointLight.position.set(20, 20, 20);
+  keyLightForPiggy.position.set(30, 20, 60);
+  highLightForPiggy.position.set(-120, 120, -100);
 
   const ambientLight = new THREE.AmbientLight(0xffffff);
-  scene.add(pointLight, ambientLight);
+  scene.add(pointLight, ambientLight, keyLightForPiggy, highLightForPiggy);
 
   const lightHelper = new THREE.PointLightHelper(pointLight);
   const gridHelper = new THREE.GridHelper(200, 50);
   scene.add(lightHelper, gridHelper);
 
   scene.background = new THREE.Color( 0xff6347 );
+
+  // load model
+  const loader = new GLTFLoader();
+  loader.load(
+    'assets/piggy_bank/scene.gltf',
+    function ( gltf ) {
+      scene.add( gltf.scene );
+      // change the color of the piggy bank
+      gltf.scene.position.set(0, -6, 20);
+      gltf.scene.scale.set(5, 5, 5);
+      gltf.scene.rotation.set(0, 0.8, 0);
+
+      var newMaterial = new THREE.MeshStandardMaterial({color: 0xff6347});
+
+      gltf.scene.traverse( function ( child ) {
+        if ( child.isMesh ) {
+          console.log(child);
+          // change the body only
+          if (child.name === 'Object_4') {
+            child.material = newMaterial;
+          }
+          child.castShadow = true;
+          child.receiveShadow = true;
+        }
+      } );
+    },
+    function ( xhr ) {
+      console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+    },
+    function ( error ) {
+      console.log( 'An error happened' );
+    }
+  );
+
+
+  // const loader = new GLTFLoader();
+  // loader.load(
+  //   'assets/piggy_bank/scene.gltf',
+  //   function ( gltf ) {
+  //     scene.add( gltf.scene );
+  //     gltf.scene.position.set(0, -5, 20);
+  //     gltf.scene.scale.set(5, 5, 5);
+  //     gltf.scene.rotation.set(0, 0.8, 0);
+  //     gltf.scene.traverse( function ( child ) {
+  //       if ( child.isMesh ) {
+  //         child.castShadow = true;
+  //         child.receiveShadow = true;
+  //       }
+  //     } );
+  //   },
+  //   function ( xhr ) {
+  //     console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+  //   },
+  //   function ( error ) {
+  //     console.log( 'An error happened' );
+  //   }
+  // );
+
+
 
   window.addEventListener( 'resize', onWindowResize );
 }
@@ -167,8 +231,8 @@ function animate() {
 
   controls.update();
 
-  pointLight.position.x = 20 * Math.sin(Date.now() / 500);
-  pointLight.position.y = 20 * Math.cos(Date.now() / 500);
+  // pointLight.position.x = 20 * Math.sin(Date.now() / 500);
+  // pointLight.position.y = 20 * Math.cos(Date.now() / 500);
 
   renderer.render(scene, camera);
 }
