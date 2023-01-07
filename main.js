@@ -112,9 +112,11 @@ const scene = new THREE.Scene();
 const aspect = window.innerWidth / window.innerHeight;
 const frustumSize = 50;
 const camera = new THREE.OrthographicCamera( frustumSize * aspect / - 2, frustumSize * aspect / 2, frustumSize / 2, frustumSize / - 2, 1, 1000 );
-const pointLight = new THREE.PointLight(0xffffff);
-const keyLightForPiggy = new THREE.PointLight(0xffffff);
-const highLightForPiggy = new THREE.PointLight(0xffffff);
+const pointLight = new THREE.PointLight(0xffffff,0.35);
+const pointLightForPiggy = new THREE.PointLight(0xffffff,1.4, 250);
+const keyLightForPiggy = new THREE.DirectionalLight(0xffffff,1.4);
+const highLightForPiggy = new THREE.DirectionalLight(0xffffff,1.2);
+const fillLightForPiggy = new THREE.DirectionalLight(0xffffff,0.6);
 const renderer = new THREE.WebGLRenderer({
   canvas: document.querySelector('#bg'),
 });
@@ -126,15 +128,19 @@ function init(){
 
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
-  camera.position.setZ(30);
+  camera.position.setZ(160);
 
   
-  // pointLight.position.set(20, 20, 20);
-  keyLightForPiggy.position.set(30, 20, 60);
-  highLightForPiggy.position.set(-120, 120, -100);
+  pointLight.position.set(20, 20, 20);
+  pointLightForPiggy.position.set(0, 20, 200);
+  keyLightForPiggy.position.set(100, 20, 160);
+  highLightForPiggy.position.set(-120, 120, 0);
+  fillLightForPiggy.position.set(-120, -20, 200);
 
-  const ambientLight = new THREE.AmbientLight(0xffffff);
-  scene.add(pointLight, ambientLight, keyLightForPiggy, highLightForPiggy);
+  const ambientLight = new THREE.AmbientLight(0xffffff,0.25);
+  // scene.add(pointLight, ambientLight, keyLightForPiggy, highLightForPiggy);
+  scene.add(pointLight, pointLightForPiggy, ambientLight, keyLightForPiggy, highLightForPiggy, fillLightForPiggy);
+  // scene.add(ambientLight, keyLightForPiggy, highLightForPiggy);
 
   const lightHelper = new THREE.PointLightHelper(pointLight);
   const gridHelper = new THREE.GridHelper(200, 50);
@@ -149,8 +155,8 @@ function init(){
     function ( gltf ) {
       scene.add( gltf.scene );
       // change the color of the piggy bank
-      gltf.scene.position.set(0, -6, 20);
-      gltf.scene.scale.set(5, 5, 5);
+      gltf.scene.position.set(0, -9.5, 120);
+      gltf.scene.scale.set(6.5, 6.5, 6.5);
       gltf.scene.rotation.set(0, 0.8, 0);
 
       var newMaterial = new THREE.MeshStandardMaterial({color: 0xff6347});
@@ -166,13 +172,18 @@ function init(){
           child.receiveShadow = true;
         }
       } );
+      keyLightForPiggy.target = gltf.scene;
+      highLightForPiggy.target = gltf.scene;
+      fillLightForPiggy.target = gltf.scene;
     },
     function ( xhr ) {
       console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
     },
     function ( error ) {
       console.log( 'An error happened' );
     }
+
   );
 
 
@@ -231,8 +242,8 @@ function animate() {
 
   controls.update();
 
-  // pointLight.position.x = 20 * Math.sin(Date.now() / 500);
-  // pointLight.position.y = 20 * Math.cos(Date.now() / 500);
+  pointLight.position.x = 20 * Math.sin(Date.now() / 500);
+  pointLight.position.y = 20 * Math.cos(Date.now() / 500);
 
   renderer.render(scene, camera);
 }
@@ -266,8 +277,6 @@ function makeInstanced( geometry ) {
   const box = new THREE.Box3().setFromObject( mesh );
   const size = new THREE.Vector3();
   box.getSize( size );
-  console.log(size.x);
-  console.log(size.y);
 
   for ( let i = 0; i < total; i ++ ) {
 
