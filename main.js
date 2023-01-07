@@ -6,7 +6,7 @@ import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
 // For OrbitControls
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+// import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 
 let totalMonths, currentMonth;
 
@@ -78,7 +78,7 @@ let fetch_data = fetch('https://script.googleusercontent.com/macros/echo?user_co
   currentMonth = totalMonths;
   console.log(expenses);
   init();
-  animate();
+  loadModel();
   loadFont(currentMonth);
 
   // create button
@@ -112,43 +112,27 @@ const scene = new THREE.Scene();
 const aspect = window.innerWidth / window.innerHeight;
 const frustumSize = 50;
 const camera = new THREE.OrthographicCamera( frustumSize * aspect / - 2, frustumSize * aspect / 2, frustumSize / 2, frustumSize / - 2, 1, 1000 );
-const pointLight = new THREE.PointLight(0xffffff,0.35);
-const pointLightForPiggy = new THREE.PointLight(0xffffff,1.4, 250);
-const keyLightForPiggy = new THREE.DirectionalLight(0xffffff,1.4);
-const highLightForPiggy = new THREE.DirectionalLight(0xffffff,1.2);
-const fillLightForPiggy = new THREE.DirectionalLight(0xffffff,0.6);
 const renderer = new THREE.WebGLRenderer({
   canvas: document.querySelector('#bg'),
 });
+const pointLight = new THREE.PointLight(0xffffff,0.35);
 
 // For OrbitControls
-const controls = new OrbitControls(camera, renderer.domElement);
+// const controls = new OrbitControls(camera, renderer.domElement);
 
 function init(){
 
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
   camera.position.setZ(160);
-
-  
-  pointLight.position.set(20, 20, 20);
-  pointLightForPiggy.position.set(0, 20, 200);
-  keyLightForPiggy.position.set(100, 20, 160);
-  highLightForPiggy.position.set(-120, 120, 0);
-  fillLightForPiggy.position.set(-120, -20, 200);
-
-  const ambientLight = new THREE.AmbientLight(0xffffff,0.25);
-  // scene.add(pointLight, ambientLight, keyLightForPiggy, highLightForPiggy);
-  scene.add(pointLight, pointLightForPiggy, ambientLight, keyLightForPiggy, highLightForPiggy, fillLightForPiggy);
-  // scene.add(ambientLight, keyLightForPiggy, highLightForPiggy);
-
-  const lightHelper = new THREE.PointLightHelper(pointLight);
-  const gridHelper = new THREE.GridHelper(200, 50);
-  scene.add(lightHelper, gridHelper);
+  // camera.position.setY(30);
 
   scene.background = new THREE.Color( 0xff6347 );
+  
+  window.addEventListener( 'resize', onWindowResize );
+}
 
-  // load model
+function loadModel() {
   const loader = new GLTFLoader();
   loader.load(
     'assets/piggy_bank/scene.gltf',
@@ -172,9 +156,28 @@ function init(){
           child.receiveShadow = true;
         }
       } );
+      const ambientLight = new THREE.AmbientLight(0xffffff,0.20);
+      
+      const pointLightForPiggy = new THREE.PointLight(0xffffff,1.4, 250);
+      const keyLightForPiggy = new THREE.DirectionalLight(0xffffff,1.6);
+      const highLightForPiggy = new THREE.DirectionalLight(0xffffff,1.4);
+      const fillLightForPiggy = new THREE.DirectionalLight(0xffffff,0.6);
+      pointLight.position.set(20, 20, 20);
+      pointLightForPiggy.position.set(0, -20, 200);
+      keyLightForPiggy.position.set(100, 20, 160);
+      highLightForPiggy.position.set(-120, 120, 0);
+      fillLightForPiggy.position.set(-120, -20, 200);
+      scene.add(pointLight, pointLightForPiggy, ambientLight, keyLightForPiggy, highLightForPiggy, fillLightForPiggy);
+
+      // const lightHelper = new THREE.PointLightHelper(pointLight);
+      // const gridHelper = new THREE.GridHelper(200, 50);
+      // scene.add(lightHelper, gridHelper);
       keyLightForPiggy.target = gltf.scene;
       highLightForPiggy.target = gltf.scene;
       fillLightForPiggy.target = gltf.scene;
+
+      animate();
+
     },
     function ( xhr ) {
       console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
@@ -185,35 +188,9 @@ function init(){
     }
 
   );
-
-
-  // const loader = new GLTFLoader();
-  // loader.load(
-  //   'assets/piggy_bank/scene.gltf',
-  //   function ( gltf ) {
-  //     scene.add( gltf.scene );
-  //     gltf.scene.position.set(0, -5, 20);
-  //     gltf.scene.scale.set(5, 5, 5);
-  //     gltf.scene.rotation.set(0, 0.8, 0);
-  //     gltf.scene.traverse( function ( child ) {
-  //       if ( child.isMesh ) {
-  //         child.castShadow = true;
-  //         child.receiveShadow = true;
-  //       }
-  //     } );
-  //   },
-  //   function ( xhr ) {
-  //     console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-  //   },
-  //   function ( error ) {
-  //     console.log( 'An error happened' );
-  //   }
-  // );
-
-
-
-  window.addEventListener( 'resize', onWindowResize );
 }
+
+
 
 function loadFont(currentMonth) {
   const fontLoader = new FontLoader();
@@ -240,7 +217,7 @@ function loadFont(currentMonth) {
 function animate() {
   requestAnimationFrame(animate);
 
-  controls.update();
+  // controls.update();
 
   pointLight.position.x = 20 * Math.sin(Date.now() / 500);
   pointLight.position.y = 20 * Math.cos(Date.now() / 500);
