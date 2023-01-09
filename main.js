@@ -4,6 +4,9 @@ import * as THREE from 'three'
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js'
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 
 // For OrbitControls
 // import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
@@ -115,7 +118,9 @@ const camera = new THREE.OrthographicCamera( frustumSize * aspect / - 2, frustum
 const renderer = new THREE.WebGLRenderer({
   canvas: document.querySelector('#bg'),
 });
-const pointLight = new THREE.PointLight(0xffffff,0.35);
+const pointLight = new THREE.PointLight(0xffffff,0.5);
+const pointer = new THREE.Vector2(1,1); // to avoid the piggy bank from being selected at the beginning
+const raycaster = new THREE.Raycaster();
 
 // For OrbitControls
 // const controls = new OrbitControls(camera, renderer.domElement);
@@ -130,6 +135,7 @@ function init(){
   scene.background = new THREE.Color( 0xff6347 );
   
   window.addEventListener( 'resize', onWindowResize );
+  window.addEventListener( 'pointermove', onPointerMove );
 }
 
 function loadModel() {
@@ -147,7 +153,7 @@ function loadModel() {
 
       gltf.scene.traverse( function ( child ) {
         if ( child.isMesh ) {
-          console.log(child);
+          // console.log(child);
           // change the body only
           if (child.name === 'Object_4') {
             child.material = newMaterial;
@@ -190,8 +196,6 @@ function loadModel() {
   );
 }
 
-
-
 function loadFont(currentMonth) {
   const fontLoader = new FontLoader();
   fontLoader.load(
@@ -214,10 +218,29 @@ function loadFont(currentMonth) {
   );
 }
 
+function resetScaleForPiggyBank() {
+  const piggyBank = scene.getObjectByName('Object_4');
+  piggyBank.parent.scale.set(1, 1, 1);
+}
+
+function hover() {
+  raycaster.setFromCamera( pointer, camera );
+  const intersects = raycaster.intersectObjects( scene.children, true );
+  for (let i = 0; i < intersects.length; i++) {
+    const object = intersects[i].object;
+    if (object.isMesh && (object.name === 'Object_4' || object.name === 'Object_5')) {
+      object.parent.scale.set(1.2, 1.2, 1.2);
+      // console.log('hovered');
+    }
+  }
+}
+
 function animate() {
   requestAnimationFrame(animate);
 
   // controls.update();
+  resetScaleForPiggyBank();
+  hover();
 
   pointLight.position.x = 20 * Math.sin(Date.now() / 500);
   pointLight.position.y = 20 * Math.cos(Date.now() / 500);
@@ -288,5 +311,15 @@ function clean() {
     scene.remove( mesh );
 
   }
+
+}
+
+function onPointerMove( event ) {
+
+	// calculate pointer position in normalized device coordinates
+	// (-1 to +1) for both components
+
+	pointer.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+	pointer.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 
 }
