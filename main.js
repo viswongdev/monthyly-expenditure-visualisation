@@ -4,12 +4,9 @@ import * as THREE from 'three'
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js'
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 
 // For OrbitControls
-// import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 
 let totalMonths, currentMonth;
 
@@ -82,6 +79,9 @@ let fetch_data = fetch('https://script.googleusercontent.com/macros/echo?user_co
   console.log(expenses);
   init();
   loadModel();
+  loadCoin();
+  loadWaterDrop();
+
   loadFont(currentMonth);
 
   // create button
@@ -123,7 +123,7 @@ const pointer = new THREE.Vector2(1,1); // to avoid the piggy bank from being se
 const raycaster = new THREE.Raycaster();
 
 // For OrbitControls
-// const controls = new OrbitControls(camera, renderer.domElement);
+const controls = new OrbitControls(camera, renderer.domElement);
 
 function init(){
 
@@ -134,8 +134,74 @@ function init(){
 
   scene.background = new THREE.Color( 0xff6347 );
   
+  window.addEventListener( 'click', onClick );
   window.addEventListener( 'resize', onWindowResize );
   window.addEventListener( 'pointermove', onPointerMove );
+}
+
+function loadWaterDrop() {
+  const loader = new GLTFLoader();
+  loader.load(
+    'assets/water_drop/scene.gltf',
+    function ( gltf ) {
+      // scene.add( gltf.scene );
+
+      // traverse scene
+      scene.traverse( function ( child ) {
+        if ( child.isMesh ) {
+          if (child.name === 'Object_4') {
+            child.add(gltf.scene);
+          }
+        }
+      } );
+
+      // gltf.scene.position.set(0, 10, 120);
+      // gltf.scene.scale.set(0.025, 0.025, 0.025);
+      // gltf.scene.rotation.set(0, 0, 0);
+
+      gltf.scene.position.set(-0.4, 1.45, 1.6);
+      gltf.scene.scale.set(0.004, 0.004, 0.004);
+      gltf.scene.rotation.set(0, 0, 0);
+
+      gltf.scene.traverse( function ( child ) {
+        if ( child.isMesh ) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+          // increase the roughness of the water drop
+          child.material.roughness = 1;
+        }
+      } );
+    },
+    undefined,
+    function ( error ) {
+      console.error( error );
+    }
+  );
+}
+
+function loadCoin() {
+  const loader = new GLTFLoader();
+  loader.load(
+    'assets/coin/scene.gltf',
+    function ( gltf ) {
+      scene.add( gltf.scene );
+      gltf.scene.position.set(0, 17, 120);
+      gltf.scene.scale.set(20, 20, 20);
+      gltf.scene.rotation.set(0, 0, 0);
+      gltf.scene.traverse( function ( child ) {
+        if ( child.isMesh ) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+          // reduce the reflectivity of the coin
+          child.material.metalness = 1;
+        }
+      } );
+    },
+    undefined,
+    function ( error ) {
+      console.error( error );
+    }
+  );
 }
 
 function loadModel() {
@@ -168,12 +234,13 @@ function loadModel() {
       const keyLightForPiggy = new THREE.DirectionalLight(0xffffff,1.6);
       const highLightForPiggy = new THREE.DirectionalLight(0xffffff,1.4);
       const fillLightForPiggy = new THREE.DirectionalLight(0xffffff,0.6);
-      pointLight.position.set(20, 20, 20);
+      // pointLight.position.set(20, 20, 20);
       pointLightForPiggy.position.set(0, -20, 200);
       keyLightForPiggy.position.set(100, 20, 160);
       highLightForPiggy.position.set(-120, 120, 0);
       fillLightForPiggy.position.set(-120, -20, 200);
-      scene.add(pointLight, pointLightForPiggy, ambientLight, keyLightForPiggy, highLightForPiggy, fillLightForPiggy);
+      // scene.add(pointLight, pointLightForPiggy, ambientLight, keyLightForPiggy, highLightForPiggy, fillLightForPiggy);
+      scene.add(pointLightForPiggy, ambientLight, keyLightForPiggy, highLightForPiggy, fillLightForPiggy);
 
       // const lightHelper = new THREE.PointLightHelper(pointLight);
       // const gridHelper = new THREE.GridHelper(200, 50);
@@ -218,6 +285,17 @@ function loadFont(currentMonth) {
   );
 }
 
+function onClick(event){
+  raycaster.setFromCamera( pointer, camera );
+  const intersects = raycaster.intersectObjects( scene.children, true );
+  for (let i = 0; i < intersects.length; i++) {
+    const object = intersects[i].object;
+    if (object.isMesh && (object.name === 'Object_4' || object.name === 'Object_5')) {
+      console.log('clicked');
+    }
+  }
+}
+
 function resetScaleForPiggyBank() {
   const piggyBank = scene.getObjectByName('Object_4');
   piggyBank.parent.scale.set(1, 1, 1);
@@ -230,7 +308,7 @@ function hover() {
     const object = intersects[i].object;
     if (object.isMesh && (object.name === 'Object_4' || object.name === 'Object_5')) {
       object.parent.scale.set(1.2, 1.2, 1.2);
-      // console.log('hovered');
+      // console.log('hovered');      
     }
   }
 }
@@ -238,12 +316,12 @@ function hover() {
 function animate() {
   requestAnimationFrame(animate);
 
-  // controls.update();
+  controls.update();
   resetScaleForPiggyBank();
   hover();
 
-  pointLight.position.x = 20 * Math.sin(Date.now() / 500);
-  pointLight.position.y = 20 * Math.cos(Date.now() / 500);
+  // pointLight.position.x = 20 * Math.sin(Date.now() / 500);
+  // pointLight.position.y = 20 * Math.cos(Date.now() / 500);
 
   renderer.render(scene, camera);
 }
