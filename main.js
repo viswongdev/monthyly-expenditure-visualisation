@@ -4,6 +4,7 @@ import * as THREE from 'three'
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js'
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import * as TWEEN from '@tweenjs/tween.js' // For animation
 
 // For OrbitControls
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
@@ -185,7 +186,7 @@ function loadCoin() {
     'assets/coin/scene.gltf',
     function ( gltf ) {
       scene.add( gltf.scene );
-      gltf.scene.position.set(0, 17, 120);
+      gltf.scene.position.set(0, 19, 120);
       gltf.scene.scale.set(20, 20, 20);
       gltf.scene.rotation.set(0, 0, 0);
       gltf.scene.traverse( function ( child ) {
@@ -313,7 +314,8 @@ function hover() {
   }
 }
 
-function animate() {
+function animate(t) {
+  TWEEN.update(t);
   requestAnimationFrame(animate);
 
   controls.update();
@@ -325,6 +327,13 @@ function animate() {
 
   renderer.render(scene, camera);
 }
+
+const tween = new TWEEN.Tween({y:0})
+  .to({ y: 25}, 5000)
+  .onUpdate((coords) => {
+    camera.position.y = coords.y;
+  })
+  .start();
 
 function onWindowResize() {
 
