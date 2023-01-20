@@ -95,6 +95,7 @@ let fetch_data = fetch('https://script.googleusercontent.com/macros/echo?user_co
     clean();
     currentMonth--;
     loadFont(currentMonth);
+    camera.position.setY(0);
   });
   document.getElementById('info').appendChild(leftArr);
 
@@ -107,6 +108,7 @@ let fetch_data = fetch('https://script.googleusercontent.com/macros/echo?user_co
     clean();
     currentMonth++;
     loadFont(currentMonth);
+    camera.position.setY(0);
   });
   document.getElementById('info').appendChild(rightArr);
 });
@@ -186,7 +188,7 @@ function loadCoin() {
     'assets/coin/scene.gltf',
     function ( gltf ) {
       scene.add( gltf.scene );
-      gltf.scene.position.set(0, 19, 120);
+      gltf.scene.position.set(0, 18.75, 120);
       gltf.scene.scale.set(20, 20, 20);
       gltf.scene.rotation.set(0, 0, 0);
       gltf.scene.traverse( function ( child ) {
