@@ -269,7 +269,8 @@ function loadModel() {
 function loadFont(currentMonth) {
   const fontLoader = new FontLoader();
   fontLoader.load(
-    'node_modules/three/examples/fonts/helvetiker_regular.typeface.json',
+    // 'node_modules/three/examples/fonts/helvetiker_regular.typeface.json',
+    'assets/open_sans_regular.json',
     (font) => {
       const textGeometry = new TextGeometry(expenses[currentMonth]['Year'].toString() + ' ' + expenses[currentMonth]['Month'].toString(), {
         font: font,
