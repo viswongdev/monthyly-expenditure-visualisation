@@ -1,0 +1,11 @@
+Model Information:
+* title:	Water Drop
+* source:	https://sketchfab.com/3d-models/water-drop-9a0a41e2b0f74230850efce53380fd08
+* author:	gurami.mamaladze (https://sketchfab.com/gurami.mamaladze)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Water Drop" (https://sketchfab.com/3d-models/water-drop-9a0a41e2b0f74230850efce53380fd08) by gurami.mamaladze (https://sketchfab.com/gurami.mamaladze) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
