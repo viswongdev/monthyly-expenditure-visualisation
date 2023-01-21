@@ -4,124 +4,134 @@ import * as THREE from 'three'
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js'
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+
 import * as TWEEN from '@tweenjs/tween.js' // For animation
 
 // For OrbitControls
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 
-let totalMonths, currentMonth;
-
-// For loading the data from Google Sheet
-let expenses = [];
-let fetch_data = fetch('https://script.googleusercontent.com/macros/echo?user_content_key=mnMJjdbtxNsXVU5DkcC1R8jSHg1ThG-YMT2eMrP-rfWHrU9M9XpGmej903Briwzw2WXnQwO2CENmR_V07SkrgroyENcqPug3m5_BxDlH2jW0nuo2oDemN9CCS2h10ox_1xSncGQajx_ryfhECjZEnHoKtwo45TyEP8jZyiOHuyClgs7H6_4QCH2QqyKLMawJgl8uPidZdGUUz3WljvP3LjHrMf2WZbZv8o61ayr3QD7dQAeXmQuFV9z9Jw9Md8uu&lib=MRuKKanBoH98B8EySqUsczSsRzDuZoC7Y')
-.then(res => res.json())
-.then(data => {
-  // console.log(data);
-  // formatting the data
-  data.GoogleSheetData.shift();
-  let keyName = data.GoogleSheetData[0];
-  data.GoogleSheetData.shift();
-  data.GoogleSheetData.forEach((item) => {
-    // console.log(item);
-    let obj = {};
-    item.forEach((value, index) => {
-      // console.log(keyName[index]);
-      if (keyName[index] === 'Month') {
-        // console.log(value);
-        switch (value) {
-          case 1:
-            value = 'Jan';
-            break;
-          case 2:
-            value = 'Feb';
-            break;
-          case 3:
-            value = 'Mar';
-            break;
-          case 4:
-            value = 'Apr';
-            break;
-          case 5:
-            value = 'May';
-            break;
-          case 6:
-            value = 'Jun';
-            break;
-          case 7:
-            value = 'Jul';
-            break;
-          case 8:
-            value = 'Aug';
-            break;
-          case 9:
-            value = 'Sep';
-            break;
-          case 10:
-            value = 'Oct';
-            break;
-          case 11:
-            value = 'Nov';
-            break;
-          case 12:
-            value = 'Dec';
-            break;
-          default:
-            break;
-        }
-        obj[keyName[index]] = value;
-      } else {
-        obj[keyName[index]] = Math.round(value);
-      }
+let data = {
+  totalMonths : null,
+  currentMonth : null,
+  expenses : [],
+  fetchExpensesData: function(url) {
+    let fetch_data = fetch(url)
+    .then(res => res.json())
+    .then(data => {
+      // formatting the data
+      data.GoogleSheetData.shift();
+      let keyName = data.GoogleSheetData[0];
+      data.GoogleSheetData.shift();
+      data.GoogleSheetData.forEach((item) => {
+        let obj = {};
+        item.forEach((value, index) => {
+          if (keyName[index] === 'Month') {
+            // console.log(value);
+            switch (value) {
+              case 1:
+                value = 'Jan';
+                break;
+              case 2:
+                value = 'Feb';
+                break;
+              case 3:
+                value = 'Mar';
+                break;
+              case 4:
+                value = 'Apr';
+                break;
+              case 5:
+                value = 'May';
+                break;
+              case 6:
+                value = 'Jun';
+                break;
+              case 7:
+                value = 'Jul';
+                break;
+              case 8:
+                value = 'Aug';
+                break;
+              case 9:
+                value = 'Sep';
+                break;
+              case 10:
+                value = 'Oct';
+                break;
+              case 11:
+                value = 'Nov';
+                break;
+              case 12:
+                value = 'Dec';
+                break;
+              default:
+                break;
+            }
+            obj[keyName[index]] = value;
+          } else {
+            obj[keyName[index]] = Math.round(value);
+          }
+        });
+        this.expenses.push(obj);
+      });
+      this.totalMonths = this.expenses.length - 1;
+      this.currentMonth = this.totalMonths;
+      callback();
     });
-    expenses.push(obj);
-  });
-  totalMonths = expenses.length - 1;
-  currentMonth = totalMonths;
-  console.log(expenses);
+  }
+}
+
+data.fetchExpensesData('https://script.googleusercontent.com/macros/echo?user_content_key=mnMJjdbtxNsXVU5DkcC1R8jSHg1ThG-YMT2eMrP-rfWHrU9M9XpGmej903Briwzw2WXnQwO2CENmR_V07SkrgroyENcqPug3m5_BxDlH2jW0nuo2oDemN9CCS2h10ox_1xSncGQajx_ryfhECjZEnHoKtwo45TyEP8jZyiOHuyClgs7H6_4QCH2QqyKLMawJgl8uPidZdGUUz3WljvP3LjHrMf2WZbZv8o61ayr3QD7dQAeXmQuFV9z9Jw9Md8uu&lib=MRuKKanBoH98B8EySqUsczSsRzDuZoC7Y');
+
+function callback(){
+  console.log(data.expenses);
+  console.log(data.totalMonths);
   init();
   loadModel();
   loadCoin();
   loadWaterDrop();
+  loadFont(data.currentMonth);
+  createNav();
+}
 
-  loadFont(currentMonth);
-
+function createNav(){
   // create button
   let leftArr = document.createElement('div');
-  leftArr.innerHTML = '◀';
+  leftArr.innerHTML = '<';
   leftArr.className = 'nav';
   leftArr.addEventListener('click', () => {
-    if (currentMonth === 0) return;
+    if (data.currentMonth === 0) return;
     console.log('left clicked');
     clean();
-    currentMonth--;
-    loadFont(currentMonth);
+    data.currentMonth--;
+    loadFont(data.currentMonth);
     camera.position.setY(0);
   });
   document.getElementById('info').appendChild(leftArr);
 
   let rightArr = document.createElement('div');
-  rightArr.innerHTML = '►';
+  rightArr.innerHTML = '>';
   rightArr.className = 'nav';
   rightArr.addEventListener('click', () => {
-    if (currentMonth === totalMonths) return;
+    if (data.currentMonth === data.totalMonths) return;
     console.log('right clicked');
     clean();
-    currentMonth++;
-    loadFont(currentMonth);
+    data.currentMonth++;
+    loadFont(data.currentMonth);
     camera.position.setY(0);
   });
   document.getElementById('info').appendChild(rightArr);
-});
+}
+
+// fetchExpensesData('https://script.googleusercontent.com/macros/echo?user_content_key=mnMJjdbtxNsXVU5DkcC1R8jSHg1ThG-YMT2eMrP-rfWHrU9M9XpGmej903Briwzw2WXnQwO2CENmR_V07SkrgroyENcqPug3m5_BxDlH2jW0nuo2oDemN9CCS2h10ox_1xSncGQajx_ryfhECjZEnHoKtwo45TyEP8jZyiOHuyClgs7H6_4QCH2QqyKLMawJgl8uPidZdGUUz3WljvP3LjHrMf2WZbZv8o61ayr3QD7dQAeXmQuFV9z9Jw9Md8uu&lib=MRuKKanBoH98B8EySqUsczSsRzDuZoC7Y');
 
 const scene = new THREE.Scene();
-// const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const aspect = window.innerWidth / window.innerHeight;
 const frustumSize = 50;
 const camera = new THREE.OrthographicCamera( frustumSize * aspect / - 2, frustumSize * aspect / 2, frustumSize / 2, frustumSize / - 2, 1, 1000 );
 const renderer = new THREE.WebGLRenderer({
   canvas: document.querySelector('#bg'),
 });
-const pointLight = new THREE.PointLight(0xffffff,0.5);
 const pointer = new THREE.Vector2(1,1); // to avoid the piggy bank from being selected at the beginning
 const raycaster = new THREE.Raycaster();
 
@@ -237,12 +247,10 @@ function loadModel() {
       const keyLightForPiggy = new THREE.DirectionalLight(0xffffff,1.6);
       const highLightForPiggy = new THREE.DirectionalLight(0xffffff,1.4);
       const fillLightForPiggy = new THREE.DirectionalLight(0xffffff,0.6);
-      // pointLight.position.set(20, 20, 20);
       pointLightForPiggy.position.set(0, -20, 200);
       keyLightForPiggy.position.set(100, 20, 160);
       highLightForPiggy.position.set(-120, 120, 0);
       fillLightForPiggy.position.set(-120, -20, 200);
-      // scene.add(pointLight, pointLightForPiggy, ambientLight, keyLightForPiggy, highLightForPiggy, fillLightForPiggy);
       scene.add(pointLightForPiggy, ambientLight, keyLightForPiggy, highLightForPiggy, fillLightForPiggy);
 
       // const lightHelper = new THREE.PointLightHelper(pointLight);
@@ -269,10 +277,9 @@ function loadModel() {
 function loadFont(currentMonth) {
   const fontLoader = new FontLoader();
   fontLoader.load(
-    // 'node_modules/three/examples/fonts/helvetiker_regular.typeface.json',
     'assets/open_sans_regular.json',
     (font) => {
-      const textGeometry = new TextGeometry(expenses[currentMonth]['Year'].toString() + ' ' + expenses[currentMonth]['Month'].toString(), {
+      const textGeometry = new TextGeometry(data.expenses[currentMonth]['Year'].toString() + ' ' + data.expenses[currentMonth]['Month'].toString(), {
         font: font,
         size: 3,
         height: 1,
@@ -324,9 +331,6 @@ function animate(t) {
   controls.update();
   resetScaleForPiggyBank();
   hover();
-
-  // pointLight.position.x = 20 * Math.sin(Date.now() / 500);
-  // pointLight.position.y = 20 * Math.cos(Date.now() / 500);
 
   renderer.render(scene, camera);
 }
