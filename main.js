@@ -10,82 +10,11 @@ import * as TWEEN from '@tweenjs/tween.js' // For animation
 // For OrbitControls
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 
-let data = {
-  totalMonths : null,
-  currentMonth : null,
-  expenses : [],
-  fetchExpensesData: function(url) {
-    let fetch_data = fetch(url)
-    .then(res => res.json())
-    .then(data => {
-      // formatting the data
-      data.GoogleSheetData.shift();
-      let keyName = data.GoogleSheetData[0];
-      data.GoogleSheetData.shift();
-      data.GoogleSheetData.forEach((item) => {
-        let obj = {};
-        item.forEach((value, index) => {
-          if (keyName[index] === 'Month') {
-            // console.log(value);
-            switch (value) {
-              case 1:
-                value = 'Jan';
-                break;
-              case 2:
-                value = 'Feb';
-                break;
-              case 3:
-                value = 'Mar';
-                break;
-              case 4:
-                value = 'Apr';
-                break;
-              case 5:
-                value = 'May';
-                break;
-              case 6:
-                value = 'Jun';
-                break;
-              case 7:
-                value = 'Jul';
-                break;
-              case 8:
-                value = 'Aug';
-                break;
-              case 9:
-                value = 'Sep';
-                break;
-              case 10:
-                value = 'Oct';
-                break;
-              case 11:
-                value = 'Nov';
-                break;
-              case 12:
-                value = 'Dec';
-                break;
-              default:
-                break;
-            }
-            obj[keyName[index]] = value;
-          } else {
-            obj[keyName[index]] = Math.round(value);
-          }
-        });
-        this.expenses.push(obj);
-      });
-      this.totalMonths = this.expenses.length - 1;
-      this.currentMonth = this.totalMonths;
-      callback();
-    });
-  }
-}
+import { data } from '/dataHelper.js'
 
-data.fetchExpensesData('https://script.googleusercontent.com/macros/echo?user_content_key=mnMJjdbtxNsXVU5DkcC1R8jSHg1ThG-YMT2eMrP-rfWHrU9M9XpGmej903Briwzw2WXnQwO2CENmR_V07SkrgroyENcqPug3m5_BxDlH2jW0nuo2oDemN9CCS2h10ox_1xSncGQajx_ryfhECjZEnHoKtwo45TyEP8jZyiOHuyClgs7H6_4QCH2QqyKLMawJgl8uPidZdGUUz3WljvP3LjHrMf2WZbZv8o61ayr3QD7dQAeXmQuFV9z9Jw9Md8uu&lib=MRuKKanBoH98B8EySqUsczSsRzDuZoC7Y');
+data.fetchExpensesData(callback, 'https://script.googleusercontent.com/macros/echo?user_content_key=mnMJjdbtxNsXVU5DkcC1R8jSHg1ThG-YMT2eMrP-rfWHrU9M9XpGmej903Briwzw2WXnQwO2CENmR_V07SkrgroyENcqPug3m5_BxDlH2jW0nuo2oDemN9CCS2h10ox_1xSncGQajx_ryfhECjZEnHoKtwo45TyEP8jZyiOHuyClgs7H6_4QCH2QqyKLMawJgl8uPidZdGUUz3WljvP3LjHrMf2WZbZv8o61ayr3QD7dQAeXmQuFV9z9Jw9Md8uu&lib=MRuKKanBoH98B8EySqUsczSsRzDuZoC7Y');
 
 function callback(){
-  console.log(data.expenses);
-  console.log(data.totalMonths);
   init();
   loadModel();
   loadCoin();
@@ -93,37 +22,6 @@ function callback(){
   loadFont(data.currentMonth);
   createNav();
 }
-
-function createNav(){
-  // create button
-  let leftArr = document.createElement('div');
-  leftArr.innerHTML = '<';
-  leftArr.className = 'nav';
-  leftArr.addEventListener('click', () => {
-    if (data.currentMonth === 0) return;
-    console.log('left clicked');
-    clean();
-    data.currentMonth--;
-    loadFont(data.currentMonth);
-    camera.position.setY(0);
-  });
-  document.getElementById('info').appendChild(leftArr);
-
-  let rightArr = document.createElement('div');
-  rightArr.innerHTML = '>';
-  rightArr.className = 'nav';
-  rightArr.addEventListener('click', () => {
-    if (data.currentMonth === data.totalMonths) return;
-    console.log('right clicked');
-    clean();
-    data.currentMonth++;
-    loadFont(data.currentMonth);
-    camera.position.setY(0);
-  });
-  document.getElementById('info').appendChild(rightArr);
-}
-
-// fetchExpensesData('https://script.googleusercontent.com/macros/echo?user_content_key=mnMJjdbtxNsXVU5DkcC1R8jSHg1ThG-YMT2eMrP-rfWHrU9M9XpGmej903Briwzw2WXnQwO2CENmR_V07SkrgroyENcqPug3m5_BxDlH2jW0nuo2oDemN9CCS2h10ox_1xSncGQajx_ryfhECjZEnHoKtwo45TyEP8jZyiOHuyClgs7H6_4QCH2QqyKLMawJgl8uPidZdGUUz3WljvP3LjHrMf2WZbZv8o61ayr3QD7dQAeXmQuFV9z9Jw9Md8uu&lib=MRuKKanBoH98B8EySqUsczSsRzDuZoC7Y');
 
 const scene = new THREE.Scene();
 const aspect = window.innerWidth / window.innerHeight;
@@ -296,66 +194,6 @@ function loadFont(currentMonth) {
   );
 }
 
-function onClick(event){
-  raycaster.setFromCamera( pointer, camera );
-  const intersects = raycaster.intersectObjects( scene.children, true );
-  for (let i = 0; i < intersects.length; i++) {
-    const object = intersects[i].object;
-    if (object.isMesh && (object.name === 'Object_4' || object.name === 'Object_5')) {
-      console.log('clicked');
-    }
-  }
-}
-
-function resetScaleForPiggyBank() {
-  const piggyBank = scene.getObjectByName('Object_4');
-  piggyBank.parent.scale.set(1, 1, 1);
-}
-
-function hover() {
-  raycaster.setFromCamera( pointer, camera );
-  const intersects = raycaster.intersectObjects( scene.children, true );
-  for (let i = 0; i < intersects.length; i++) {
-    const object = intersects[i].object;
-    if (object.isMesh && (object.name === 'Object_4' || object.name === 'Object_5')) {
-      object.parent.scale.set(1.2, 1.2, 1.2);
-      // console.log('hovered');      
-    }
-  }
-}
-
-function animate(t) {
-  TWEEN.update(t);
-  requestAnimationFrame(animate);
-
-  controls.update();
-  resetScaleForPiggyBank();
-  hover();
-
-  renderer.render(scene, camera);
-}
-
-const tween = new TWEEN.Tween({y:0})
-  .to({ y: 25}, 5000)
-  .onUpdate((coords) => {
-    camera.position.y = coords.y;
-  })
-  .start();
-
-function onWindowResize() {
-
-  const aspect = window.innerWidth / window.innerHeight;
-
-  camera.left = - frustumSize * aspect / 2;
-  camera.right = frustumSize * aspect / 2;
-  camera.top = frustumSize / 2;
-  camera.bottom = - frustumSize / 2;
-
-  camera.updateProjectionMatrix();
-
-  renderer.setSize( window.innerWidth, window.innerHeight );
-
-}
 
 function makeInstanced( geometry ) {
   const x = 10;
@@ -386,6 +224,35 @@ function makeInstanced( geometry ) {
 
 }
 
+function createNav(){
+  // create button
+  let leftArr = document.createElement('div');
+  leftArr.innerHTML = '<';
+  leftArr.className = 'nav';
+  leftArr.addEventListener('click', () => {
+    if (data.currentMonth === 0) return;
+    console.log('left clicked');
+    clean();
+    data.currentMonth--;
+    loadFont(data.currentMonth);
+    camera.position.setY(0);
+  });
+  document.getElementById('info').appendChild(leftArr);
+
+  let rightArr = document.createElement('div');
+  rightArr.innerHTML = '>';
+  rightArr.className = 'nav';
+  rightArr.addEventListener('click', () => {
+    if (data.currentMonth === data.totalMonths) return;
+    console.log('right clicked');
+    clean();
+    data.currentMonth++;
+    loadFont(data.currentMonth);
+    camera.position.setY(0);
+  });
+  document.getElementById('info').appendChild(rightArr);
+}
+
 function clean() {
 
   const meshes = [];
@@ -408,7 +275,35 @@ function clean() {
 
 }
 
-function onPointerMove( event ) {
+function resetScaleForPiggyBank() {
+  const piggyBank = scene.getObjectByName('Object_4');
+  piggyBank.parent.scale.set(1, 1, 1);
+}
+
+function hover() {
+  raycaster.setFromCamera( pointer, camera );
+  const intersects = raycaster.intersectObjects( scene.children, true );
+  for (let i = 0; i < intersects.length; i++) {
+    const object = intersects[i].object;
+    if (object.isMesh && (object.name === 'Object_4' || object.name === 'Object_5')) {
+      object.parent.scale.set(1.2, 1.2, 1.2);
+      // console.log('hovered');      
+    }
+  }
+}
+
+function onClick(event){
+  raycaster.setFromCamera( pointer, camera );
+  const intersects = raycaster.intersectObjects( scene.children, true );
+  for (let i = 0; i < intersects.length; i++) {
+    const object = intersects[i].object;
+    if (object.isMesh && (object.name === 'Object_4' || object.name === 'Object_5')) {
+      console.log('clicked');
+    }
+  }
+}
+
+function onPointerMove(event) {
 
 	// calculate pointer position in normalized device coordinates
 	// (-1 to +1) for both components
@@ -417,3 +312,38 @@ function onPointerMove( event ) {
 	pointer.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 
 }
+
+function onWindowResize() {
+
+  const aspect = window.innerWidth / window.innerHeight;
+
+  camera.left = - frustumSize * aspect / 2;
+  camera.right = frustumSize * aspect / 2;
+  camera.top = frustumSize / 2;
+  camera.bottom = - frustumSize / 2;
+
+  camera.updateProjectionMatrix();
+
+  renderer.setSize( window.innerWidth, window.innerHeight );
+
+}
+
+function animate(t) {
+  TWEEN.update(t);
+  requestAnimationFrame(animate);
+
+  controls.update();
+  resetScaleForPiggyBank();
+  hover();
+
+  renderer.render(scene, camera);
+}
+
+const tween = new TWEEN.Tween({y:0})
+  .to({ y: 25}, 5000)
+  .onUpdate((coords) => {
+    camera.position.y = coords.y;
+  })
+  .start();
+
+
