@@ -232,7 +232,7 @@ function createNav(){
     clean();
     data.currentMonth--;
     loadFont(data.currentMonth);
-    camera.position.setY(0);
+    // camera.position.setY(0);
   });
   document.getElementById('info').appendChild(leftArr);
 
@@ -245,7 +245,7 @@ function createNav(){
     clean();
     data.currentMonth++;
     loadFont(data.currentMonth);
-    camera.position.setY(0);
+    // camera.position.setY(0);
   });
   document.getElementById('info').appendChild(rightArr);
 }
@@ -281,13 +281,18 @@ function resetScaleForPiggyBank() {
 function hover() {
   raycaster.setFromCamera( pointer, camera );
   const intersects = raycaster.intersectObjects( scene.children, true );
-  for (let i = 0; i < intersects.length; i++) {
-    const object = intersects[i].object;
+  // for (let i = 0; i < intersects.length; i++) {
+    const object = intersects[0].object;
     if (object.isMesh && (object.name === 'Object_4' || object.name === 'Object_5')) {
       object.parent.scale.set(1.2, 1.2, 1.2);
-      // console.log('hovered');      
+      // console.log('hovered');   
+      // cursor change to pointer
+      document.body.style.cursor = 'pointer';
+    } else {
+      // resetScaleForPiggyBank();
+      document.body.style.cursor = 'default';
     }
-  }
+  // }
 }
 
 function onClick(event){
@@ -296,6 +301,7 @@ function onClick(event){
   for (let i = 0; i < intersects.length; i++) {
     const object = intersects[i].object;
     if (object.isMesh && (object.name === 'Object_4' || object.name === 'Object_5')) {
+      tween.start();
       console.log('clicked');
     }
   }
@@ -328,7 +334,11 @@ function onWindowResize() {
 
 function animate(t) {
   TWEEN.update(t);
-  requestAnimationFrame(animate);
+  setTimeout( function() {
+
+    requestAnimationFrame(animate);  
+
+  }, 1000 / 60 ); // 60 fps
 
   controls.update();
   resetScaleForPiggyBank();
@@ -337,11 +347,14 @@ function animate(t) {
   renderer.render(scene, camera);
 }
 
+// bounce in out
 const tween = new TWEEN.Tween({y:0})
-  .to({ y: 25}, 5000)
+  .to({ y: 25}, 1000)
+  .delay(500)
+  .easing(TWEEN.Easing.Back.InOut)
   .onUpdate((coords) => {
     camera.position.y = coords.y;
-  })
-  .start();
+  });
+  // .start();
 
 

@@ -33,16 +33,10 @@ canvas {
 .nav{
   margin:10px;
   cursor: pointer;
-  pointer-events: all;
+  pointer-events: auto;
   opacity: 0.5;
-  -webkit-touch-callout: none; /* iOS Safari */
-  -webkit-user-select: none; /* Safari */
-  -khtml-user-select: none; /* Konqueror HTML */
-  -moz-user-select: none; /* Old versions of Firefox */
-  -ms-user-select: none; /* Internet Explorer/Edge */
-  user-select: none;
 }
 
-.nav:hover {
+.nav:hover, .nav:active {
   transform: scale(1.5); /* (150% zoom - Note: if the zoom is too large, it will go outside of the viewport) */
 }
