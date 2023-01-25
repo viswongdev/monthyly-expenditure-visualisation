@@ -16,9 +16,7 @@ data.fetchExpensesData(callback, 'https://script.googleusercontent.com/macros/ec
 
 function callback(){
   init();
-  loadFont(data.currentMonth);
   loadPiggyBank();
-  loadWaterDrop();
   loadCoin();
   createNav();
   animate()
@@ -35,6 +33,13 @@ const renderer = new THREE.WebGLRenderer({
 const pointer = new THREE.Vector2(1,1); // to avoid the piggy bank from being selected at the beginning
 const raycaster = new THREE.Raycaster();
 
+// Lights
+const ambientLight = new THREE.AmbientLight(0xffffff,0.20);    
+const pointLightForPiggy = new THREE.PointLight(0xffffff,1.4, 250);
+const keyLightForPiggy = new THREE.DirectionalLight(0xffffff,1.6);
+const highLightForPiggy = new THREE.DirectionalLight(0xffffff,1.4);
+const fillLightForPiggy = new THREE.DirectionalLight(0xffffff,0.6);
+
 // For OrbitControls
 // const controls = new OrbitControls(camera, renderer.domElement);
 
@@ -46,7 +51,13 @@ function init(){
   // camera.position.setY(30);
 
   scene.background = new THREE.Color( 0xff6347 );
-  
+
+  pointLightForPiggy.position.set(0, -20, 200);
+  keyLightForPiggy.position.set(100, 20, 160);
+  highLightForPiggy.position.set(-120, 120, 0);
+  fillLightForPiggy.position.set(-120, -20, 200);
+  scene.add(pointLightForPiggy, ambientLight, keyLightForPiggy, highLightForPiggy, fillLightForPiggy);
+
   window.addEventListener( 'click', onClick );
   window.addEventListener( 'pointermove', onPointerMove );
   window.addEventListener( 'resize', onWindowResize );
@@ -122,26 +133,12 @@ async function loadPiggyBank() {
           child.receiveShadow = true;
         }
       } );
-      const ambientLight = new THREE.AmbientLight(0xffffff,0.20);
-      
-      const pointLightForPiggy = new THREE.PointLight(0xffffff,1.4, 250);
-      const keyLightForPiggy = new THREE.DirectionalLight(0xffffff,1.6);
-      const highLightForPiggy = new THREE.DirectionalLight(0xffffff,1.4);
-      const fillLightForPiggy = new THREE.DirectionalLight(0xffffff,0.6);
-      pointLightForPiggy.position.set(0, -20, 200);
-      keyLightForPiggy.position.set(100, 20, 160);
-      highLightForPiggy.position.set(-120, 120, 0);
-      fillLightForPiggy.position.set(-120, -20, 200);
-      scene.add(pointLightForPiggy, ambientLight, keyLightForPiggy, highLightForPiggy, fillLightForPiggy);
 
-      // const lightHelper = new THREE.PointLightHelper(pointLight);
-      // const gridHelper = new THREE.GridHelper(200, 50);
-      // scene.add(lightHelper, gridHelper);
       keyLightForPiggy.target = gltf.scene;
       highLightForPiggy.target = gltf.scene;
       fillLightForPiggy.target = gltf.scene;
 
-      // animate();
+      loadFont(data.currentMonth);
 
     },
     function ( xhr ) {
@@ -155,53 +152,13 @@ async function loadPiggyBank() {
   );
 }
 
-async function loadWaterDrop() {
-  const loader = new GLTFLoader();
-  await loader.load(
-    'assets/water_drop/scene.gltf',
-    function ( gltf ) {
-      // scene.add( gltf.scene );
-
-      // traverse scene
-      scene.traverse( function ( child ) {
-        if ( child.isMesh ) {
-          if (child.name === 'Object_4') {
-            child.add(gltf.scene);
-          }
-        }
-      } );
-
-      // gltf.scene.position.set(0, 10, 120);
-      // gltf.scene.scale.set(0.025, 0.025, 0.025);
-      // gltf.scene.rotation.set(0, 0, 0);
-
-      gltf.scene.position.set(-0.4, 1.45, 1.6);
-      gltf.scene.scale.set(0.004, 0.004, 0.004);
-      gltf.scene.rotation.set(0, 0, 0);
-
-      gltf.scene.traverse( function ( child ) {
-        if ( child.isMesh ) {
-          child.castShadow = true;
-          child.receiveShadow = true;
-          // increase the roughness of the water drop
-          child.material.roughness = 1;
-        }
-      } );
-    },
-    undefined,
-    function ( error ) {
-      console.error( error );
-    }
-  );
-}
-
 async function loadCoin() {
   const loader = new GLTFLoader();
   await loader.load(
     'assets/coin/scene.gltf',
     function ( gltf ) {
       scene.add( gltf.scene );
-      gltf.scene.position.set(0, 18.75, 120);
+      gltf.scene.position.set(0, 0, 120);
       gltf.scene.scale.set(20, 20, 20);
       gltf.scene.rotation.set(0, 0, 0);
       gltf.scene.traverse( function ( child ) {
@@ -251,7 +208,9 @@ function createNav(){
 }
 
 function resetObjects() {
-  camera.position.setY(0);
+  // camera.position.setY(0);
+  scene.getObjectByName('Object_4').parent.position.setY(0);
+  scene.getObjectByName('Coin_Coin_0').scale.set(1, 1, 1);
 }
 
 function clean() {
@@ -286,18 +245,13 @@ function hover() {
   raycaster.setFromCamera( pointer, camera );
   const intersects = raycaster.intersectObjects( scene.children, true );
   if(intersects.length > 0) {
-  
-  // for (let i = 0; i < intersects.length; i++) {
     const object = intersects[0].object;
-    console.log(object);
-    if (object.isMesh && (object.name === 'Object_4' || object.name === 'Object_5' || object.name === 'Object_2')) {
+    if (object.isMesh && (object.name === 'Object_4' || object.name === 'Object_5')) {
       scene.getObjectByName('Object_4').parent.scale.set(1.2, 1.2, 1.2);
       document.body.style.cursor = 'pointer';
     } else {
-      // resetScaleForPiggyBank();
       document.body.style.cursor = 'default';
     }
-  // }
   }
 }
 
@@ -306,8 +260,9 @@ function onClick(event){
   const intersects = raycaster.intersectObjects( scene.children, true );
   for (let i = 0; i < intersects.length; i++) {
     const object = intersects[i].object;
-    if (object.isMesh && (object.name === 'Object_4' || object.name === 'Object_5' || object.name === 'Object_2')) {
+    if (object.isMesh && (object.name === 'Object_4' || object.name === 'Object_5')) {
       tween.start();
+      tween2.start();
       console.log('clicked');
     }
   }
@@ -346,7 +301,6 @@ function animate(t) {
 
   }, 1000 / 60 ); // 60 fps
 
-  // controls.update();
   resetScaleForPiggyBank();
   hover();
 
@@ -355,12 +309,16 @@ function animate(t) {
 
 // bounce in out
 const tween = new TWEEN.Tween({y:0})
-  .to({ y: 25}, 1000)
-  .delay(500)
+  .to({ y: -3.5}, 1000)
+  .delay(100)
   .easing(TWEEN.Easing.Back.InOut)
   .onUpdate((coords) => {
-    camera.position.y = coords.y;
+    scene.getObjectByName('Object_4').parent.position.y = coords.y;
   });
-  // .start();
 
-
+  const tween2 = new TWEEN.Tween({x:1, y:1, z:1})
+  .to({x:3, y:3, z:3}, 1000)
+  .easing(TWEEN.Easing.Back.In)
+  .onUpdate((scales) => {
+    scene.getObjectByName('Coin_Coin_0').scale.set(scales.x, scales.y, scales.z);
+  });
