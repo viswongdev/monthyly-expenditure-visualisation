@@ -16,13 +16,15 @@ data.fetchExpensesData(callback, 'https://script.googleusercontent.com/macros/ec
 
 function callback(){
   init();
-  loadModel();
-  loadCoin();
-  loadWaterDrop();
   loadFont(data.currentMonth);
+  loadPiggyBank();
+  loadWaterDrop();
+  loadCoin();
   createNav();
+  animate();
 }
 
+// var init
 const scene = new THREE.Scene();
 const aspect = window.innerWidth / window.innerHeight;
 const frustumSize = 50;
@@ -46,78 +48,59 @@ function init(){
   scene.background = new THREE.Color( 0xff6347 );
   
   window.addEventListener( 'click', onClick );
-  window.addEventListener( 'resize', onWindowResize );
   window.addEventListener( 'pointermove', onPointerMove );
+  window.addEventListener( 'resize', onWindowResize );
 }
 
-function loadWaterDrop() {
-  const loader = new GLTFLoader();
-  loader.load(
-    'assets/water_drop/scene.gltf',
-    function ( gltf ) {
-      // scene.add( gltf.scene );
-
-      // traverse scene
-      scene.traverse( function ( child ) {
-        if ( child.isMesh ) {
-          if (child.name === 'Object_4') {
-            child.add(gltf.scene);
-          }
-        }
-      } );
-
-      // gltf.scene.position.set(0, 10, 120);
-      // gltf.scene.scale.set(0.025, 0.025, 0.025);
-      // gltf.scene.rotation.set(0, 0, 0);
-
-      gltf.scene.position.set(-0.4, 1.45, 1.6);
-      gltf.scene.scale.set(0.004, 0.004, 0.004);
-      gltf.scene.rotation.set(0, 0, 0);
-
-      gltf.scene.traverse( function ( child ) {
-        if ( child.isMesh ) {
-          child.castShadow = true;
-          child.receiveShadow = true;
-          // increase the roughness of the water drop
-          child.material.roughness = 1;
-        }
-      } );
-    },
-    undefined,
-    function ( error ) {
-      console.error( error );
+async function loadFont(currentMonth) {
+  const fontLoader = new FontLoader();
+  await fontLoader.load(
+    'assets/open_sans_regular.json',
+    (font) => {
+      const textGeometry = new TextGeometry(data.expenses[currentMonth]['Year'].toString() + ' ' + data.expenses[currentMonth]['Month'].toString(), {
+        font: font,
+        size: 3,
+        height: 1,
+        curveSegments: 5,
+        bevelEnabled: true,
+        bevelThickness: 0.1,
+        bevelSize: 0.1,
+        bevelOffset: 0,
+        bevelSegments: 4,
+      });
+      textGeometry.center();
+      makeInstanced(textGeometry);
     }
   );
 }
 
-function loadCoin() {
-  const loader = new GLTFLoader();
-  loader.load(
-    'assets/coin/scene.gltf',
-    function ( gltf ) {
-      scene.add( gltf.scene );
-      gltf.scene.position.set(0, 18.75, 120);
-      gltf.scene.scale.set(20, 20, 20);
-      gltf.scene.rotation.set(0, 0, 0);
-      gltf.scene.traverse( function ( child ) {
-        if ( child.isMesh ) {
-          child.castShadow = true;
-          child.receiveShadow = true;
-          // reduce the reflectivity of the coin
-          child.material.metalness = 1;
-        }
-      } );
-    },
-    undefined,
-    function ( error ) {
-      console.error( error );
-    }
-  );
+function makeInstanced( geometry ) {
+  const x = 30;
+  const y = 20;
+  let count = 0;
+  const gap = 1.5;
+  const total = x*y;
+  const matrix = new THREE.Matrix4();
+  const material = new THREE.MeshStandardMaterial({ color: 0xff6347 });
+  const mesh = new THREE.InstancedMesh( geometry, material, total );
+  
+  // get the mesh actual dimensions
+  const box = new THREE.Box3().setFromObject( mesh );
+  const size = new THREE.Vector3();
+  box.getSize( size );
+
+  for ( let i = 0; i < total; i ++ ) {
+    matrix.makeTranslation( (-(size.x*x)-((x-1)*gap))/2 + size.x/2 + i % x * (size.x + gap), y*size.y/2 - size.y/2 + count * -size.y, 0 );
+    mesh.setMatrixAt( i, matrix );
+    if (i%x === x-1) count++;
+  }
+  
+  scene.add( mesh );
 }
 
-function loadModel() {
+async function loadPiggyBank() {
   const loader = new GLTFLoader();
-  loader.load(
+  await loader.load(
     'assets/piggy_bank/scene.gltf',
     function ( gltf ) {
       scene.add( gltf.scene );
@@ -158,7 +141,7 @@ function loadModel() {
       highLightForPiggy.target = gltf.scene;
       fillLightForPiggy.target = gltf.scene;
 
-      animate();
+      // animate();
 
     },
     function ( xhr ) {
@@ -172,57 +155,71 @@ function loadModel() {
   );
 }
 
-function loadFont(currentMonth) {
-  const fontLoader = new FontLoader();
-  fontLoader.load(
-    'assets/open_sans_regular.json',
-    (font) => {
-      const textGeometry = new TextGeometry(data.expenses[currentMonth]['Year'].toString() + ' ' + data.expenses[currentMonth]['Month'].toString(), {
-        font: font,
-        size: 3,
-        height: 1,
-        curveSegments: 5,
-        bevelEnabled: true,
-        bevelThickness: 0.1,
-        bevelSize: 0.1,
-        bevelOffset: 0,
-        bevelSegments: 4,
-      });
-      textGeometry.center();
-      makeInstanced(textGeometry);
+async function loadWaterDrop() {
+  const loader = new GLTFLoader();
+  await loader.load(
+    'assets/water_drop/scene.gltf',
+    function ( gltf ) {
+      // scene.add( gltf.scene );
+
+      // traverse scene
+      scene.traverse( function ( child ) {
+        if ( child.isMesh ) {
+          if (child.name === 'Object_4') {
+            child.add(gltf.scene);
+          }
+        }
+      } );
+
+      // gltf.scene.position.set(0, 10, 120);
+      // gltf.scene.scale.set(0.025, 0.025, 0.025);
+      // gltf.scene.rotation.set(0, 0, 0);
+
+      gltf.scene.position.set(-0.4, 1.45, 1.6);
+      gltf.scene.scale.set(0.004, 0.004, 0.004);
+      gltf.scene.rotation.set(0, 0, 0);
+
+      gltf.scene.traverse( function ( child ) {
+        if ( child.isMesh ) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+          // increase the roughness of the water drop
+          child.material.roughness = 1;
+        }
+      } );
+    },
+    undefined,
+    function ( error ) {
+      console.error( error );
     }
   );
 }
 
-
-function makeInstanced( geometry ) {
-  const x = 10;
-  const y = 20;
-  let count = 0;
-  const gap = 1.5;
-  const total = x*y;
-  const matrix = new THREE.Matrix4();
-  const material = new THREE.MeshStandardMaterial({ color: 0xff6347 });
-  const mesh = new THREE.InstancedMesh( geometry, material, total );
-  
-  // get the mesh actual dimensions
-  const box = new THREE.Box3().setFromObject( mesh );
-  const size = new THREE.Vector3();
-  box.getSize( size );
-
-  for ( let i = 0; i < total; i ++ ) {
-
-    matrix.makeTranslation( (-(size.x*x)-((x-1)*gap))/2 + size.x/2 + i % x * (size.x + gap), y*size.y/2 - size.y/2 + count * -size.y, 0 );
-
-    mesh.setMatrixAt( i, matrix );
-
-    if (i%x === x-1) count++;
-
-  }
-
-  scene.add( mesh );
-
+async function loadCoin() {
+  const loader = new GLTFLoader();
+  await loader.load(
+    'assets/coin/scene.gltf',
+    function ( gltf ) {
+      scene.add( gltf.scene );
+      gltf.scene.position.set(0, 18.75, 120);
+      gltf.scene.scale.set(20, 20, 20);
+      gltf.scene.rotation.set(0, 0, 0);
+      gltf.scene.traverse( function ( child ) {
+        if ( child.isMesh ) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+          // reduce the reflectivity of the coin
+          child.material.metalness = 1;
+        }
+      } );
+    },
+    undefined,
+    function ( error ) {
+      console.error( error );
+    }
+  );
 }
+
 
 function createNav(){
   // create button
@@ -276,8 +273,9 @@ function clean() {
 }
 
 function resetScaleForPiggyBank() {
-  const piggyBank = scene.getObjectByName('Object_4');
-  piggyBank.parent.scale.set(1, 1, 1);
+  if(scene.getObjectByName('Object_4')) {
+    scene.getObjectByName('Object_4').parent.scale.set(1, 1, 1);
+  }
 }
 
 function hover() {
