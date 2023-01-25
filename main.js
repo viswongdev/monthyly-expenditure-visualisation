@@ -8,7 +8,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import * as TWEEN from '@tweenjs/tween.js' // For animation
 
 // For OrbitControls
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+// import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 
 import { data } from '/dataHelper.js'
 
@@ -21,7 +21,7 @@ function callback(){
   loadWaterDrop();
   loadCoin();
   createNav();
-  animate();
+  animate()
 }
 
 // var init
@@ -36,7 +36,7 @@ const pointer = new THREE.Vector2(1,1); // to avoid the piggy bank from being se
 const raycaster = new THREE.Raycaster();
 
 // For OrbitControls
-const controls = new OrbitControls(camera, renderer.domElement);
+// const controls = new OrbitControls(camera, renderer.domElement);
 
 function init(){
 
@@ -76,7 +76,7 @@ async function loadFont(currentMonth) {
 
 function makeInstanced( geometry ) {
   const x = 30;
-  const y = 20;
+  const y = 40;
   let count = 0;
   const gap = 1.5;
   const total = x*y;
@@ -232,7 +232,7 @@ function createNav(){
     clean();
     data.currentMonth--;
     loadFont(data.currentMonth);
-    // camera.position.setY(0);
+    resetObjects();
   });
   document.getElementById('info').appendChild(leftArr);
 
@@ -245,9 +245,13 @@ function createNav(){
     clean();
     data.currentMonth++;
     loadFont(data.currentMonth);
-    // camera.position.setY(0);
+    resetObjects();
   });
   document.getElementById('info').appendChild(rightArr);
+}
+
+function resetObjects() {
+  camera.position.setY(0);
 }
 
 function clean() {
@@ -281,18 +285,20 @@ function resetScaleForPiggyBank() {
 function hover() {
   raycaster.setFromCamera( pointer, camera );
   const intersects = raycaster.intersectObjects( scene.children, true );
+  if(intersects.length > 0) {
+  
   // for (let i = 0; i < intersects.length; i++) {
     const object = intersects[0].object;
-    if (object.isMesh && (object.name === 'Object_4' || object.name === 'Object_5')) {
-      object.parent.scale.set(1.2, 1.2, 1.2);
-      // console.log('hovered');   
-      // cursor change to pointer
+    console.log(object);
+    if (object.isMesh && (object.name === 'Object_4' || object.name === 'Object_5' || object.name === 'Object_2')) {
+      scene.getObjectByName('Object_4').parent.scale.set(1.2, 1.2, 1.2);
       document.body.style.cursor = 'pointer';
     } else {
       // resetScaleForPiggyBank();
       document.body.style.cursor = 'default';
     }
   // }
+  }
 }
 
 function onClick(event){
@@ -300,7 +306,7 @@ function onClick(event){
   const intersects = raycaster.intersectObjects( scene.children, true );
   for (let i = 0; i < intersects.length; i++) {
     const object = intersects[i].object;
-    if (object.isMesh && (object.name === 'Object_4' || object.name === 'Object_5')) {
+    if (object.isMesh && (object.name === 'Object_4' || object.name === 'Object_5' || object.name === 'Object_2')) {
       tween.start();
       console.log('clicked');
     }
@@ -340,7 +346,7 @@ function animate(t) {
 
   }, 1000 / 60 ); // 60 fps
 
-  controls.update();
+  // controls.update();
   resetScaleForPiggyBank();
   hover();
 
