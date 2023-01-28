@@ -5,6 +5,8 @@ import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js'
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
 import * as TWEEN from '@tweenjs/tween.js' // For animation
 
 // For OrbitControls
@@ -17,12 +19,11 @@ data.fetchExpensesData(callback, 'https://script.googleusercontent.com/macros/ec
 function callback(){
   init();
   loadPiggyBank();
-  loadCoin();
-  createNav();
+  // createNav();
   animate()
 }
 
-// var init
+// Scene
 const scene = new THREE.Scene();
 const aspect = window.innerWidth / window.innerHeight;
 const frustumSize = 50;
@@ -30,6 +31,8 @@ const camera = new THREE.OrthographicCamera( frustumSize * aspect / - 2, frustum
 const renderer = new THREE.WebGLRenderer({
   canvas: document.querySelector('#bg'),
 });
+
+// Raycaster
 const pointer = new THREE.Vector2(1,1); // to avoid the piggy bank from being selected at the beginning
 const raycaster = new THREE.Raycaster();
 
@@ -40,6 +43,9 @@ const keyLightForPiggy = new THREE.DirectionalLight(0xffffff,1.6);
 const highLightForPiggy = new THREE.DirectionalLight(0xffffff,1.4);
 const fillLightForPiggy = new THREE.DirectionalLight(0xffffff,0.6);
 
+// Css2DRenderer
+const css2dRenderer = new CSS2DRenderer();
+
 // For OrbitControls
 // const controls = new OrbitControls(camera, renderer.domElement);
 
@@ -49,6 +55,12 @@ function init(){
   renderer.setSize(window.innerWidth, window.innerHeight);
   camera.position.setZ(160);
   // camera.position.setY(30);
+
+  css2dRenderer.setSize(window.innerWidth, window.innerHeight);
+  css2dRenderer.domElement.style.position = 'absolute';
+  css2dRenderer.domElement.style.top = 0;
+  css2dRenderer.domElement.style.pointerEvents = 'none';
+  // document.body.appendChild(css2dRenderer.domElement);
 
   scene.background = new THREE.Color( 0xff6347 );
 
@@ -124,7 +136,6 @@ async function loadPiggyBank() {
 
       gltf.scene.traverse( function ( child ) {
         if ( child.isMesh ) {
-          // console.log(child);
           // change the body only
           if (child.name === 'Object_4') {
             child.material = newMaterial;
@@ -139,14 +150,12 @@ async function loadPiggyBank() {
       fillLightForPiggy.target = gltf.scene;
 
       loadFont(data.currentMonth);
+      loadCoin();
 
     },
-    function ( xhr ) {
-      console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-
-    },
+    undefined,
     function ( error ) {
-      console.log( 'An error happened' );
+      console.log(error);
     }
 
   );
@@ -208,31 +217,22 @@ function createNav(){
 }
 
 function resetObjects() {
-  // camera.position.setY(0);
   scene.getObjectByName('Object_4').parent.position.setY(0);
   scene.getObjectByName('Coin_Coin_0').scale.set(1, 1, 1);
 }
 
 function clean() {
-
   const meshes = [];
-
   scene.traverse( function ( object ) {
-
     if ( object.isMesh ) meshes.push( object );
-
   } );
 
   for ( let i = 0; i < meshes.length; i ++ ) {
-
     const mesh = meshes[ i ];
     mesh.material.dispose();
     mesh.geometry.dispose();
-
     scene.remove( mesh );
-
   }
-
 }
 
 function resetScaleForPiggyBank() {
@@ -252,6 +252,8 @@ function hover() {
     } else {
       document.body.style.cursor = 'default';
     }
+  } else {
+    document.body.style.cursor = 'default';
   }
 }
 
@@ -290,6 +292,7 @@ function onWindowResize() {
   camera.updateProjectionMatrix();
 
   renderer.setSize( window.innerWidth, window.innerHeight );
+  css2dRenderer.setSize( window.innerWidth, window.innerHeight );
 
 }
 
@@ -304,21 +307,22 @@ function animate(t) {
   resetScaleForPiggyBank();
   hover();
 
+  css2dRenderer.render(scene, camera);
   renderer.render(scene, camera);
 }
 
 // bounce in out
 const tween = new TWEEN.Tween({y:0})
-  .to({ y: -3.5}, 1000)
-  .delay(100)
-  .easing(TWEEN.Easing.Back.InOut)
-  .onUpdate((coords) => {
-    scene.getObjectByName('Object_4').parent.position.y = coords.y;
-  });
+.to({ y: -3.5}, 1000)
+.delay(100)
+.easing(TWEEN.Easing.Back.InOut)
+.onUpdate((coords) => {
+  scene.getObjectByName('Object_4').parent.position.y = coords.y;
+});
 
-  const tween2 = new TWEEN.Tween({x:1, y:1, z:1})
-  .to({x:3, y:3, z:3}, 1000)
-  .easing(TWEEN.Easing.Back.In)
-  .onUpdate((scales) => {
-    scene.getObjectByName('Coin_Coin_0').scale.set(scales.x, scales.y, scales.z);
-  });
+const tween2 = new TWEEN.Tween({x:1, y:1, z:1})
+.to({x:3, y:3, z:3}, 1000)
+.easing(TWEEN.Easing.Back.In)
+.onUpdate((scales) => {
+  scene.getObjectByName('Coin_Coin_0').scale.set(scales.x, scales.y, scales.z);
+});
