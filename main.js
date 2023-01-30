@@ -33,6 +33,7 @@ const renderer = new THREE.WebGLRenderer({
 });
 
 // Raycaster
+const touchVector = new THREE.Vector2();
 const pointer = new THREE.Vector2(1,1); // to avoid the piggy bank from being selected at the beginning
 const raycaster = new THREE.Raycaster();
 
@@ -70,10 +71,13 @@ function init(){
   fillLightForPiggy.position.set(-120, -20, 200);
   scene.add(pointLightForPiggy, ambientLight, keyLightForPiggy, highLightForPiggy, fillLightForPiggy);
 
-  window.addEventListener( 'click', onClick );
+  // window.addEventListener( 'click', onClick );
   window.addEventListener( 'pointermove', onPointerMove );
   window.addEventListener( 'resize', onWindowResize );
-  window.addEventListener('touchstart', onTouchStart);
+  // window.addEventListener( 'touchstart', onTouchStart );
+
+  window.addEventListener('click', onClickOrTouch);
+  window.addEventListener('touchstart', onClickOrTouch);
 }
 
 async function loadFont(currentMonth) {
@@ -258,8 +262,17 @@ function hover() {
   }
 }
 
-function onClick(event){
-  raycaster.setFromCamera( pointer, camera );
+function onClickOrTouch(event) {
+  let touch = event;
+  if (event.changedTouches) {
+    touch = event.changedTouches[0];
+    touchVector.x = (touch.clientX / window.innerWidth) * 2 - 1;
+    touchVector.y = -(touch.clientY / window.innerHeight) * 2 + 1;
+    raycaster.setFromCamera(touchVector, camera);
+  } else {
+    raycaster.setFromCamera(pointer, camera);
+  }
+
   const intersects = raycaster.intersectObjects( scene.children, true );
   for (let i = 0; i < intersects.length; i++) {
     const object = intersects[i].object;
@@ -271,31 +284,42 @@ function onClick(event){
   }
 }
 
-// Create a touch vector
-const touchVector = new THREE.Vector2();
 
-// Handle touchstart event
-function onTouchStart(event) {
-  // Get the first touch
-  const touch = event.changedTouches[0];
+// function onClick(event){
+//   raycaster.setFromCamera( pointer, camera );
+//   const intersects = raycaster.intersectObjects( scene.children, true );
+//   for (let i = 0; i < intersects.length; i++) {
+//     const object = intersects[i].object;
+//     if (object.isMesh && (object.name === 'Object_4' || object.name === 'Object_5')) {
+//       tween.start();
+//       tween2.start();
+//       console.log('clicked');
+//     }
+//   }
+// }
 
-  // Update the touch vector with the touch coordinates
-  touchVector.x = (touch.clientX / window.innerWidth) * 2 - 1;
-  touchVector.y = -(touch.clientY / window.innerHeight) * 2 + 1;
+// // Handle touchstart event
+// function onTouchStart(event) {
+//   // Get the first touch
+//   const touch = event.changedTouches[0];
 
-  // Update the raycaster with the touch vector
-  raycaster.setFromCamera(touchVector, camera);
+//   // Update the touch vector with the touch coordinates
+//   touchVector.x = (touch.clientX / window.innerWidth) * 2 - 1;
+//   touchVector.y = -(touch.clientY / window.innerHeight) * 2 + 1;
 
-  const intersects = raycaster.intersectObjects( scene.children, true );
-  for (let i = 0; i < intersects.length; i++) {
-    const object = intersects[i].object;
-    if (object.isMesh && (object.name === 'Object_4' || object.name === 'Object_5')) {
-      tween.start();
-      tween2.start();
-      console.log('clicked');
-    }
-  }
-}
+//   // Update the raycaster with the touch vector
+//   raycaster.setFromCamera(touchVector, camera);
+
+//   const intersects = raycaster.intersectObjects( scene.children, true );
+//   for (let i = 0; i < intersects.length; i++) {
+//     const object = intersects[i].object;
+//     if (object.isMesh && (object.name === 'Object_4' || object.name === 'Object_5')) {
+//       tween.start();
+//       tween2.start();
+//       console.log('clicked');
+//     }
+//   }
+// }
 
 function onPointerMove(event) {
 
