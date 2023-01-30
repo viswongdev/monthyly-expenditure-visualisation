@@ -10,7 +10,7 @@ import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer
 import * as TWEEN from '@tweenjs/tween.js' // For animation
 
 // For OrbitControls
-// import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 
 import { data } from '/dataHelper.js'
 
@@ -19,7 +19,7 @@ data.fetchExpensesData(callback, 'https://script.googleusercontent.com/macros/ec
 function callback(){
   init();
   loadPiggyBank();
-  // createNav();
+  createNav();
   animate()
 }
 
@@ -48,7 +48,7 @@ const fillLightForPiggy = new THREE.DirectionalLight(0xffffff,0.6);
 const css2dRenderer = new CSS2DRenderer();
 
 // For OrbitControls
-// const controls = new OrbitControls(camera, renderer.domElement);
+const controls = new OrbitControls(camera, renderer.domElement);
 
 function init(){
 
@@ -61,7 +61,7 @@ function init(){
   css2dRenderer.domElement.style.position = 'absolute';
   css2dRenderer.domElement.style.top = 0;
   css2dRenderer.domElement.style.pointerEvents = 'none';
-  // document.body.appendChild(css2dRenderer.domElement);
+  document.body.appendChild(css2dRenderer.domElement);
 
   scene.background = new THREE.Color( 0xff6347 );
 
@@ -193,9 +193,8 @@ async function loadCoin() {
 
 
 function createNav(){
-  // create button
-  let leftArr = document.createElement('div');
-  leftArr.innerHTML = '<';
+  const leftArr = document.createElement('div');
+  leftArr.textContent = '<';
   leftArr.className = 'nav';
   leftArr.addEventListener('click', () => {
     if (data.currentMonth === 0) return;
@@ -205,10 +204,9 @@ function createNav(){
     loadFont(data.currentMonth);
     resetObjects();
   });
-  document.getElementById('info').appendChild(leftArr);
 
-  let rightArr = document.createElement('div');
-  rightArr.innerHTML = '>';
+  const rightArr = document.createElement('div');
+  rightArr.textContent = '>';
   rightArr.className = 'nav';
   rightArr.addEventListener('click', () => {
     if (data.currentMonth === data.totalMonths) return;
@@ -218,7 +216,13 @@ function createNav(){
     loadFont(data.currentMonth);
     resetObjects();
   });
-  document.getElementById('info').appendChild(rightArr);
+
+  const div = document.createElement('div');
+  div.className = 'info';
+  div.appendChild(leftArr);
+  div.appendChild(rightArr);
+  const divContainer = new CSS2DObject(div);
+  scene.add(divContainer);
 }
 
 function resetObjects() {
@@ -247,6 +251,7 @@ function resetScaleForPiggyBank() {
 }
 
 function hover() {
+
   raycaster.setFromCamera( pointer, camera );
   const intersects = raycaster.intersectObjects( scene.children, true );
   if(intersects.length > 0) {
@@ -354,6 +359,20 @@ function animate(t) {
     requestAnimationFrame(animate);  
 
   }, 1000 / 60 ); // 60 fps
+
+  controls.update();
+
+  // rotate the text mesh
+  if(scene.children[7]) {
+    // rotate the text mesh based on sine wave
+    scene.children[7].rotation.y = Math.sin(t / 1000) * 0.05;
+    scene.children[7].rotation.x = Math.sin(t / 1000) * 0.05;
+  }
+
+  // rotate the piggy bank
+  if(scene.getObjectByName('Object_4')) {
+    scene.getObjectByName('Object_4').parent.rotation.y = Math.sin(t / 1000) * 0.1;
+  }
 
   resetScaleForPiggyBank();
   hover();
