@@ -270,6 +270,22 @@ function onClick(event){
   }
 }
 
+// Handle touchstart event
+function onTouchStart(event) {
+  // Get the first touch
+  const touch = event.changedTouches[0];
+
+  // Update the touch vector with the touch coordinates
+  touchVector.x = (touch.clientX / window.innerWidth) * 2 - 1;
+  touchVector.y = -(touch.clientY / window.innerHeight) * 2 + 1;
+
+  // Update the raycaster with the touch vector
+  raycaster.setFromCamera(touchVector, camera);
+}
+
+// Attach the touchstart event to the canvas
+document.querySelector('canvas').addEventListener('touchstart', onTouchStart);
+
 function onPointerMove(event) {
 
 	// calculate pointer position in normalized device coordinates
