@@ -284,6 +284,16 @@ function onTouchStart(event) {
 
   // Update the raycaster with the touch vector
   raycaster.setFromCamera(touchVector, camera);
+
+  const intersects = raycaster.intersectObjects( scene.children, true );
+  for (let i = 0; i < intersects.length; i++) {
+    const object = intersects[i].object;
+    if (object.isMesh && (object.name === 'Object_4' || object.name === 'Object_5')) {
+      tween.start();
+      tween2.start();
+      console.log('clicked');
+    }
+  }
 }
 
 // Attach the touchstart event to the canvas
