@@ -73,6 +73,7 @@ function init(){
   window.addEventListener( 'click', onClick );
   window.addEventListener( 'pointermove', onPointerMove );
   window.addEventListener( 'resize', onWindowResize );
+  window.addEventListener('touchstart', onTouchStart);
 }
 
 async function loadFont(currentMonth) {
@@ -295,9 +296,6 @@ function onTouchStart(event) {
     }
   }
 }
-
-// Attach the touchstart event to the canvas
-document.querySelector('canvas').addEventListener('touchstart', onTouchStart);
 
 function onPointerMove(event) {
 
