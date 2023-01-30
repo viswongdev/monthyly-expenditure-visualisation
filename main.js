@@ -270,6 +270,9 @@ function onClick(event){
   }
 }
 
+// Create a touch vector
+const touchVector = new THREE.Vector2();
+
 // Handle touchstart event
 function onTouchStart(event) {
   // Get the first touch
