@@ -363,11 +363,13 @@ function animate(t) {
   controls.update();
 
   // rotate the text mesh
-  if(scene.children[7]) {
-    // rotate the text mesh based on sine wave
-    scene.children[7].rotation.y = Math.sin(t / 1000) * 0.05;
-    scene.children[7].rotation.x = Math.sin(t / 1000) * 0.05;
-  }
+  // traverse the scene and find the InstancedMesh
+  scene.traverse( function ( object ) {
+    if ( object.isInstancedMesh ) {
+      object.rotation.y = Math.sin(t / 1000) * 0.05;
+      object.rotation.x = Math.sin(t / 1000) * 0.05;
+    }
+  } );
 
   // rotate the piggy bank
   if(scene.getObjectByName('Object_4')) {
