@@ -7,10 +7,15 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 
+// import chart js
+import { Chart } from 'chart.js/auto';
+// import ChartDataLabels
+import ChartDataLabels from 'chartjs-plugin-datalabels';
+
 import * as TWEEN from '@tweenjs/tween.js' // For animation
 
 // For OrbitControls
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+// import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 
 import { data } from '/dataHelper.js'
 
@@ -20,7 +25,8 @@ function callback(){
   init();
   loadPiggyBank();
   createNav();
-  animate()
+  animate();
+  console.log(data);
 }
 
 // Scene
@@ -48,7 +54,7 @@ const fillLightForPiggy = new THREE.DirectionalLight(0xffffff,0.6);
 const css2dRenderer = new CSS2DRenderer();
 
 // For OrbitControls
-const controls = new OrbitControls(camera, renderer.domElement);
+// const controls = new OrbitControls(camera, renderer.domElement);
 
 function init(){
 
@@ -73,7 +79,7 @@ function init(){
 
   // window.addEventListener( 'click', onClick );
   window.addEventListener( 'pointermove', onPointerMove );
-  window.addEventListener( 'resize', onWindowResize );
+  window.addEventListener( 'resize', onWindowResize, false );
   // window.addEventListener( 'touchstart', onTouchStart );
 
   window.addEventListener('click', onClickOrTouch);
@@ -218,7 +224,7 @@ function createNav(){
   });
 
   const div = document.createElement('div');
-  div.className = 'info';
+  div.id = 'info';
   div.appendChild(leftArr);
   div.appendChild(rightArr);
   const divContainer = new CSS2DObject(div);
@@ -284,47 +290,11 @@ function onClickOrTouch(event) {
     if (object.isMesh && (object.name === 'Object_4' || object.name === 'Object_5')) {
       tween.start();
       tween2.start();
+      // createChart();
       console.log('clicked');
     }
   }
 }
-
-
-// function onClick(event){
-//   raycaster.setFromCamera( pointer, camera );
-//   const intersects = raycaster.intersectObjects( scene.children, true );
-//   for (let i = 0; i < intersects.length; i++) {
-//     const object = intersects[i].object;
-//     if (object.isMesh && (object.name === 'Object_4' || object.name === 'Object_5')) {
-//       tween.start();
-//       tween2.start();
-//       console.log('clicked');
-//     }
-//   }
-// }
-
-// // Handle touchstart event
-// function onTouchStart(event) {
-//   // Get the first touch
-//   const touch = event.changedTouches[0];
-
-//   // Update the touch vector with the touch coordinates
-//   touchVector.x = (touch.clientX / window.innerWidth) * 2 - 1;
-//   touchVector.y = -(touch.clientY / window.innerHeight) * 2 + 1;
-
-//   // Update the raycaster with the touch vector
-//   raycaster.setFromCamera(touchVector, camera);
-
-//   const intersects = raycaster.intersectObjects( scene.children, true );
-//   for (let i = 0; i < intersects.length; i++) {
-//     const object = intersects[i].object;
-//     if (object.isMesh && (object.name === 'Object_4' || object.name === 'Object_5')) {
-//       tween.start();
-//       tween2.start();
-//       console.log('clicked');
-//     }
-//   }
-// }
 
 function onPointerMove(event) {
 
@@ -350,6 +320,23 @@ function onWindowResize() {
   renderer.setSize( window.innerWidth, window.innerHeight );
   css2dRenderer.setSize( window.innerWidth, window.innerHeight );
 
+  // get coin size in pixels
+  getCoinSizeInPixels();
+
+}
+
+function getCoinSizeInPixels() {
+  if(scene.getObjectByName('Coin_Coin_0')){
+    const coin = scene.getObjectByName('Coin_Coin_0');
+    const coinBox = new THREE.Box3().setFromObject(coin);
+    const coinBoxSize = coinBox.getSize(new THREE.Vector3());
+    const coinBoxWidth = coinBoxSize.x;
+    const aspect = window.innerWidth / window.innerHeight;
+    const coinBoxWidthInPixels = (coinBoxWidth * window.innerWidth / (2 * frustumSize * aspect))*2;
+    return Math.round(coinBoxWidthInPixels);
+  } else {
+    return 0;
+  }
 }
 
 function animate(t) {
@@ -360,9 +347,8 @@ function animate(t) {
 
   }, 1000 / 60 ); // 60 fps
 
-  controls.update();
+  // controls.update();
 
-  // rotate the text mesh
   // traverse the scene and find the InstancedMesh
   scene.traverse( function ( object ) {
     if ( object.isInstancedMesh ) {
@@ -378,7 +364,7 @@ function animate(t) {
 
   resetScaleForPiggyBank();
   hover();
-
+  
   css2dRenderer.render(scene, camera);
   renderer.render(scene, camera);
 }
@@ -397,4 +383,74 @@ const tween2 = new TWEEN.Tween({x:1, y:1, z:1})
 .easing(TWEEN.Easing.Back.In)
 .onUpdate((scales) => {
   scene.getObjectByName('Coin_Coin_0').scale.set(scales.x, scales.y, scales.z);
+})
+.onComplete(() => {
+  createChart();
 });
+
+
+function createChart(){
+  // create chart
+  const ctx = document.createElement('canvas');
+  ctx.id = 'myChart';
+  const chartBox = document.createElement('div');
+  chartBox.id = 'chartBox';
+  chartBox.style.width = getCoinSizeInPixels() + 'px';
+  chartBox.appendChild(ctx);
+  // turn it to 3d object
+  const chartBox3d = new CSS2DObject(chartBox);
+  chartBox3d.name = 'chartBox3d';
+  scene.add(chartBox3d);
+  
+  let labels = Object.getOwnPropertyNames(data.expenses[data.currentMonth]);
+  labels.shift();
+  labels.shift();
+  labels.shift();
+  let _data = Object.values(data.expenses[data.currentMonth]);
+  _data.shift();
+  _data.shift();
+  _data.shift();
+
+  // remove empty values
+  for(let i = 0; i < _data.length; i++){
+    if(_data[i] === 0){
+      _data.splice(i, 1);
+      labels.splice(i, 1);
+    }
+  }
+  
+  new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels,
+      datasets: [{
+        data: _data,
+        borderWidth: 0
+      }]
+    },
+    options: {
+      plugins: {
+        legend: {
+          display: false,
+        },
+        tooltip: {
+          enabled: false,
+        },
+        datalabels: {
+          color: '#fff',
+          formatter: (value, ctx) => {
+            let sum = 0;
+            let dataArr = ctx.chart.data.datasets[0].data;
+            dataArr.map(data => {
+              sum += data;
+            });
+            let percentage = (value*100 / sum).toFixed(2)+"%";
+            // get the data label
+            return `${ctx.chart.data.labels[ctx.dataIndex]}: £${value} / ${percentage}`;
+          }
+        }
+      }
+    },
+    plugins: [ChartDataLabels]
+  });  
+}
