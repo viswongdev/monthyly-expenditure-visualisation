@@ -321,7 +321,12 @@ function onWindowResize() {
   css2dRenderer.setSize( window.innerWidth, window.innerHeight );
 
   // get coin size in pixels
-  getCoinSizeInPixels();
+  if(document.getElementById('chartBox')){
+    console.log('getCoinSizeInPixels()', getCoinSizeInPixels());
+    document.getElementById('chartBox').style.width = getCoinSizeInPixels() + 'px';
+    document.getElementById('chartBox').style.height = getCoinSizeInPixels() + 'px';
+  }
+  
 
 }
 
@@ -396,6 +401,7 @@ function createChart(){
   const chartBox = document.createElement('div');
   chartBox.id = 'chartBox';
   chartBox.style.width = getCoinSizeInPixels() + 'px';
+  chartBox.style.height = getCoinSizeInPixels() + 'px';
   chartBox.appendChild(ctx);
   // turn it to 3d object
   const chartBox3d = new CSS2DObject(chartBox);
