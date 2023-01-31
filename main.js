@@ -27,7 +27,6 @@ function callback(){
   createNav();
   createChart();
   animate();
-  console.log(data);
 }
 
 // Scene
@@ -167,7 +166,7 @@ async function loadPiggyBank() {
     },
     undefined,
     function ( error ) {
-      console.log(error);
+      console.error(error);
     }
 
   );
@@ -193,7 +192,7 @@ async function loadCoin() {
     },
     undefined,
     function ( error ) {
-      console.error( error );
+      console.error(error);
     }
   );
 }
@@ -205,7 +204,6 @@ function createNav(){
   leftArr.className = 'nav';
   leftArr.addEventListener('click', () => {
     if (data.currentMonth === 0) return;
-    console.log('left clicked');
     clean();
     data.currentMonth--;
     loadFont(data.currentMonth);
@@ -220,7 +218,6 @@ function createNav(){
   rightArr.className = 'nav';
   rightArr.addEventListener('click', () => {
     if (data.currentMonth === data.totalMonths) return;
-    console.log('right clicked');
     clean();
     data.currentMonth++;
     loadFont(data.currentMonth);
@@ -294,10 +291,13 @@ function onClickOrTouch(event) {
   const intersects = raycaster.intersectObjects( scene.children, true );
   for (let i = 0; i < intersects.length; i++) {
     const object = intersects[i].object;
+    // return if it's clicked already
+    if (object.isMesh && object.name === 'Object_4' && object.parent.position.y < 0) {
+      return;
+    }
     if (object.isMesh && (object.name === 'Object_4' || object.name === 'Object_5')) {
       tween.start();
       tween2.start();
-      console.log('clicked');
     }
   }
 }
@@ -328,7 +328,6 @@ function onWindowResize() {
 
   // get coin size in pixels
   if(document.getElementById('chartBox')){
-    console.log('getCoinSizeInPixels()', getCoinSizeInPixels());
     document.getElementById('chartBox').style.width = getCoinSizeInPixels() + 'px';
     document.getElementById('chartBox').style.height = getCoinSizeInPixels() + 'px';
   }
@@ -399,7 +398,6 @@ const tween2 = new TWEEN.Tween({x:1, y:1, z:1})
 })
 .onComplete(() => {
   if(document.getElementById('chartBox')){
-    console.log('getCoinSizeInPixels()', getCoinSizeInPixels());
     document.getElementById('chartBox').style.width = getCoinSizeInPixels() + 'px';
     document.getElementById('chartBox').style.height = getCoinSizeInPixels() + 'px';
   }
