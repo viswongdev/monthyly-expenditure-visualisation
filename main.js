@@ -25,6 +25,7 @@ function callback(){
   init();
   loadPiggyBank();
   createNav();
+  createChart();
   animate();
   console.log(data);
 }
@@ -209,6 +210,9 @@ function createNav(){
     data.currentMonth--;
     loadFont(data.currentMonth);
     resetObjects();
+    if(myChart !== undefined) {
+      myChart.destroy();
+    }
   });
 
   const rightArr = document.createElement('div');
@@ -221,6 +225,9 @@ function createNav(){
     data.currentMonth++;
     loadFont(data.currentMonth);
     resetObjects();
+    if(myChart !== undefined) {
+      myChart.destroy();
+    }
   });
 
   const div = document.createElement('div');
@@ -290,7 +297,6 @@ function onClickOrTouch(event) {
     if (object.isMesh && (object.name === 'Object_4' || object.name === 'Object_5')) {
       tween.start();
       tween2.start();
-      // createChart();
       console.log('clicked');
     }
   }
@@ -383,6 +389,8 @@ const tween = new TWEEN.Tween({y:0})
   scene.getObjectByName('Object_4').parent.position.y = coords.y;
 });
 
+let myChart;
+
 const tween2 = new TWEEN.Tween({x:1, y:1, z:1})
 .to({x:3, y:3, z:3}, 1000)
 .easing(TWEEN.Easing.Back.In)
@@ -390,47 +398,18 @@ const tween2 = new TWEEN.Tween({x:1, y:1, z:1})
   scene.getObjectByName('Coin_Coin_0').scale.set(scales.x, scales.y, scales.z);
 })
 .onComplete(() => {
-  createChart();
-});
-
-
-function createChart(){
-  // create chart
-  const ctx = document.createElement('canvas');
-  ctx.id = 'myChart';
-  const chartBox = document.createElement('div');
-  chartBox.id = 'chartBox';
-  chartBox.style.width = getCoinSizeInPixels() + 'px';
-  chartBox.style.height = getCoinSizeInPixels() + 'px';
-  chartBox.appendChild(ctx);
-  // turn it to 3d object
-  const chartBox3d = new CSS2DObject(chartBox);
-  chartBox3d.name = 'chartBox3d';
-  scene.add(chartBox3d);
-  
-  let labels = Object.getOwnPropertyNames(data.expenses[data.currentMonth]);
-  labels.shift();
-  labels.shift();
-  labels.shift();
-  let _data = Object.values(data.expenses[data.currentMonth]);
-  _data.shift();
-  _data.shift();
-  _data.shift();
-
-  // remove empty values
-  for(let i = 0; i < _data.length; i++){
-    if(_data[i] === 0){
-      _data.splice(i, 1);
-      labels.splice(i, 1);
-    }
+  if(document.getElementById('chartBox')){
+    console.log('getCoinSizeInPixels()', getCoinSizeInPixels());
+    document.getElementById('chartBox').style.width = getCoinSizeInPixels() + 'px';
+    document.getElementById('chartBox').style.height = getCoinSizeInPixels() + 'px';
   }
   
-  new Chart(ctx, {
+  myChart = new Chart(document.getElementById('myChart'), {
     type: 'pie',
     data: {
-      labels,
+      labels: setLabelsaAndData()['labels'],
       datasets: [{
-        data: _data,
+        data: setLabelsaAndData()['_data'],
         borderWidth: 0
       }]
     },
@@ -458,5 +437,41 @@ function createChart(){
       }
     },
     plugins: [ChartDataLabels]
-  });  
+  });
+});
+
+
+function createChart(){
+  // create chart
+  const ctx = document.createElement('canvas');
+  ctx.id = 'myChart';
+  const chartBox = document.createElement('div');
+  chartBox.id = 'chartBox';
+  // chartBox.style.width = getCoinSizeInPixels() + 'px';
+  // chartBox.style.height = getCoinSizeInPixels() + 'px';
+  chartBox.appendChild(ctx);
+  // turn it to 3d object
+  const chartBox3d = new CSS2DObject(chartBox);
+  chartBox3d.name = 'chartBox3d';
+  scene.add(chartBox3d);
+}
+
+function setLabelsaAndData(){
+  let labels = Object.getOwnPropertyNames(data.expenses[data.currentMonth]);
+  labels.shift();
+  labels.shift();
+  labels.shift();
+  let _data = Object.values(data.expenses[data.currentMonth]);
+  _data.shift();
+  _data.shift();
+  _data.shift();
+
+  // remove empty values
+  for(let i = 0; i < _data.length; i++){
+    if(_data[i] === 0){
+      _data.splice(i, 1);
+      labels.splice(i, 1);
+    }
+  }
+  return {labels, _data};
 }
