@@ -421,6 +421,9 @@ const tween2 = new TWEEN.Tween({x:1, y:1, z:1})
         },
         datalabels: {
           color: '#fff',
+          display: 'auto',
+          anchor: 'end',
+          align: 'start',
           formatter: (value, ctx) => {
             let sum = 0;
             let dataArr = ctx.chart.data.datasets[0].data;
